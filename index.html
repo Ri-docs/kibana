@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RapidIdentity Memory‑Spike & Kibana Cheat‑Sheet</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-50 text-gray-800 antialiased">
+  <!--==============  HEADER  ==============-->
+  <header class="bg-sky-700 text-white shadow">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-6">
+      <h1 class="text-2xl font-semibold tracking-wide">
+        RapidIdentity — Memory Spike / Restart Troubleshooting
+      </h1>
+      <nav class="hidden md:flex space-x-6 text-sm font-medium">
+        <a href="#flow" class="hover:underline">End‑to‑End Flow</a>
+        <a href="#snippets" class="hover:underline">Query Snippets</a>
+        <a href="#ticket" class="hover:underline">DevOps Ticket</a>
+        <a href="#tips" class="hover:underline">Tips & Shortcuts</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-12 space-y-16">
+    <!--==============  FLOW  ==============-->
+    <section id="flow" class="space-y-6">
+      <h2 class="text-xl font-semibold text-sky-700 flex items-center mb-4">
+        <span class="mr-2">0.</span> End‑to‑End Flow
+      </h2>
+
+      <ol class="list-decimal list-inside space-y-3 pl-4">
+        <li>
+          Open the tenant’s dashboard in <strong>Grafana</strong>.<br />
+          ▸ You have two entry paths:<br />
+          &emsp;• Via the <a href="https://ri-docs.github.io/grafana-url-generator/" class="text-sky-700 underline">Grafana URL Generator</a> (requires the <em>tenant ID</em>).<br />
+          &emsp;• Or directly through the <strong>Salesforce</strong> tenant record (click the “Grafana” link in the Integrations section).
+        </li>
+        <li>
+          In the <strong>Memory Usage w/o Cache (%)</strong> panel:<br />
+          • Find a spike &gt; 100 % immediately followed by a sharp drop.<br />
+          • Hover to capture the UTC timestamp (copy to clipboard).
+        </li>
+        <li>
+          Click <kbd class="px-2 py-0.5 bg-gray-200 rounded">Open in Kibana</kbd> (top‑right of the panel).
+        </li>
+        <li>
+          In Kibana <strong>Discover</strong>:<br />
+          • Set the time‑picker to ±5 min around the spike.<br />
+          • Paste one of the query snippets below (start with “Started RapidIdentity”).<br />
+          • Confirm you see a pod restart that lines up with the Grafana drop.
+        </li>
+        <li>
+          Need a CSV?<br />
+          Gear wheel → <strong>More</strong> → <strong>Export</strong>.<br />
+          You can also switch tenants here by entering another namespace in Discover.
+        </li>
+        <li>
+          Collect at least three restart times, then open a DevOps ticket (template below).
+        </li>
+      </ol>
+    </section>
+
+    <!--==============  SNIPPETS  ==============-->
+    <section id="snippets">
+      <h2 class="text-xl font-semibold text-sky-700 flex items-center mb-4">
+        <span class="mr-2">1.</span> Kibana Query Snippets
+      </h2>
+
+      <!-- Accordion wrapper -->
+      <div class="space-y-4">
+
+        <!-- 1A STARTUP -->
+        <details class="bg-white rounded shadow p-4">
+          <summary class="cursor-pointer font-medium text-sky-700">
+            ▶ Pod Startup (verify restart)
+          </summary>
+<pre class="bg-gray-100 p-3 rounded text-sm mt-4 whitespace-pre-wrap"><code>{
+  "query": {
+    "bool": {
+      "must": [
+        { "term": { "kubernetes.namespace": "TENANT_NAMESPACE" } },
+        { "match_phrase": { "message": "Started RapidIdentity" } }
+      ]
+    }
+  }
+}</code></pre>
+          <p class="text-sm mt-2">Replace <code>TENANT_NAMESPACE</code> with e.g. <code>idaas-ia3c90…</code>.</p>
+        </details>
+
+        <!-- 1B OOM / EXIT 137 -->
+        <details class="bg-white rounded shadow p-4">
+          <summary class="cursor-pointer font-medium text-sky-700">
+            ▶ Container Killed / OOM (Exit 137)
+          </summary>
+<pre class="bg-gray-100 p-3 rounded text-sm mt-4 whitespace-pre-wrap"><code>{
+  "query": {
+    "bool": {
+      "filter": [
+        { "term": { "kubernetes.namespace": "TENANT_NAMESPACE" } }
+      ],
+      "must": {
+        "query_string": {
+          "query": "\"exit code 137\" OR OOMKilled OR \"Killed process\""
+        }
+      }
+    }
+  }
+}</code></pre>
+        </details>
+
+        <!-- 1C STUDIO JOB ERRORS -->
+        <details class="bg-white rounded shadow p-4">
+          <summary class="cursor-pointer font-medium text-sky-700">
+            ▶ Studio Job Errors / Warnings
+          </summary>
+<pre class="bg-gray-100 p-3 rounded text-sm mt-4 whitespace-pre-wrap"><code>{
+  "query": {
+    "bool": {
+      "filter": [
+        { "term": { "kubernetes.namespace": "TENANT_NAMESPACE" } }
+      ],
+      "must": [
+        { "match": { "level": "ERROR" } }
+      ],
+      "should": [
+        { "match_phrase": { "message": "Studio job" } },
+        { "wildcard": { "logger": "net.idauto.studio.job*" } }
+      ],
+      "minimum_should_match": 1
+    }
+  }
+}</code></pre>
+        </details>
+
+        <!-- 1D RABBITMQ -->
+        <details class="bg-white rounded shadow p-4">
+          <summary class="cursor-pointer font-medium text-sky-700">
+            ▶ RabbitMQ Decryption Failures
+          </summary>
+<pre class="bg-gray-100 p-3 rounded text-sm mt-4 whitespace-pre-wrap"><code>{
+  "query": {
+    "bool": {
+      "filter": [
+        { "term": { "kubernetes.namespace": "TENANT_NAMESPACE" } }
+      ],
+      "must": {
+        "match_phrase": {
+          "message": "Failed to decrypt the RabbitMQ broker password"
+        }
+      }
+    }
+  }
+}</code></pre>
+        </details>
+
+        <!-- 1E FILESYSTEM -->
+        <details class="bg-white rounded shadow p-4">
+          <summary class="cursor-pointer font-medium text-sky-700">
+            ▶ Read‑Only Filesystem Errors
+          </summary>
+<pre class="bg-gray-100 p-3 rounded text-sm mt-4 whitespace-pre-wrap"><code>{
+  "query": {
+    "match_phrase": {
+      "message": "Read-only file system"
+    }
+  }
+}</code></pre>
+        </details>
+
+        <!-- 1F GAL ITEM -->
+        <details class="bg-white rounded shadow p-4">
+          <summary class="cursor-pointer font-medium text-sky-700">
+            ▶ GAL Item Update Exceptions
+          </summary>
+<pre class="bg-gray-100 p-3 rounded text-sm mt-4 whitespace-pre-wrap"><code>{
+  "query": {
+    "match_phrase": {
+      "message": "An error occurred while saving or updating the GAL item"
+    }
+  }
+}</code></pre>
+        </details>
+
+        <!-- 1G GENERIC -->
+        <details class="bg-white rounded shadow p-4">
+          <summary class="cursor-pointer font-medium text-sky-700">
+            ▶ Generic ERROR / WARN Catch‑All
+          </summary>
+<pre class="bg-gray-100 p-3 rounded text-sm mt-4 whitespace-pre-wrap"><code>{
+  "query": {
+    "bool": {
+      "filter": [
+        { "term": { "kubernetes.namespace": "TENANT_NAMESPACE" } }
+      ],
+      "must": {
+        "query_string": {
+          "query": "level:(ERROR OR WARN)"
+        }
+      }
+    }
+  }
+}</code></pre>
+        </details>
+
+      </div>
+    </section>
+
+    <!--==============  DEVOPS TICKET  ==============-->
+    <section id="ticket" class="space-y-6">
+      <h2 class="text-xl font-semibold text-sky-700 flex items-center">
+        <span class="mr-2">2.</span> DevOps Ticket Template
+      </h2>
+
+<pre class="bg-gray-100 p-3 rounded text-sm whitespace-pre-wrap"><code>Title:
+Increase memory limit – Tenant <TENANT_ID> on cluster us004-<CLUSTER_NO>
+
+Body:
+Please bump memory for tenant <TENANT_ID> (namespace <NAMESPACE>) on cluster us004-<CLUSTER_NO>.
+
+Observed restarts (UTC):
+• <TS1>
+• <TS2>
+• <TS3>
+
+Grafana panel: Memory Usage w/o Cache (%)
+
+Reference tickets: DEVOPS-9527, DEVOPS-9488
+
+Thanks,
+<Your Name></code></pre>
+    </section>
+
+    <!--==============  TIPS & SHORTCUTS  ==============-->
+    <section id="tips" class="space-y-6 pb-12">
+      <h2 class="text-xl font-semibold text-sky-700 flex items-center">
+        <span class="mr-2">3.</span> Quick Tips & Shortcuts
+      </h2>
+      <ul class="list-disc list-inside space-y-2 text-sm">
+        <li><kbd class="px-1 bg-gray-200 rounded">e</kbd> in Kibana Discover opens the KQL bar.</li>
+        <li><strong>CSV export:</strong> Gear → More → Export.</li>
+        <li><strong>View JSON:</strong> Expand arrow on a row → toggle JSON for full doc.</li>
+        <li>Switch tenants fast: replace namespace term in any snippet, update time‑picker, hit ▶.</li>
+        <li>Need raw tail? use <code>{"query":{"match_all":{}},"size":100}</code> then sort desc.</li>
+      </ul>
+    </section>
+  </main>
+
+  <!--==============  FOOTER  ==============-->
+  <footer class="bg-sky-700 text-white text-sm py-4">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+      RapidIdentity – Memory Spike & Kibana Cheat‑Sheet
+    </div>
+  </footer>
+</body>
+</html>
