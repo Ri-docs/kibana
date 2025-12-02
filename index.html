@@ -54,6 +54,7 @@
             <option value="audit">Audit object changes</option>
             <option value="job">Job logs by job id</option>
             <option value="pod">Search by pod name</option>
+            <option value="tail">Simple tail of recent logs</option>
           </select>
         </div>
 
@@ -120,6 +121,19 @@
           />
         </div>
 
+        <div class="space-y-2">
+          <label class="block font-medium" for="tailSizeInput">
+            Tail size (for Simple tail)
+          </label>
+          <input
+            id="tailSizeInput"
+            type="number"
+            min="1"
+            step="1"
+            class="w-full border rounded px-2 py-1"
+            value="100"
+          />
+        </div>
       </div>
 
       <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-2">
@@ -179,6 +193,7 @@
         <li>Generic text search uses your Keywords in message with match_phrase on message.</li>
         <li>Auth failures and success use a fixed phrase and optionally add the username as a match on message.</li>
         <li>Job logs uses clusteredJob_id set to the Job id or name you enter.</li>
+        <li>Simple tail builds a query with size and sort by @timestamp desc.</li>
       </ul>
     </section>
   </main>
