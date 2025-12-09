@@ -39,26 +39,6 @@
         </div>
 
         <div class="space-y-2">
-          <label class="block font-medium" for="templateSelect">
-            Template
-          </label>
-          <select
-            id="templateSelect"
-            class="w-full border rounded px-2 py-1 bg-white"
-          >
-            <option value="generic">Generic text search</option>
-            <option value="authFailure">Auth failures by username</option>
-            <option value="authSuccess">Auth success events</option>
-            <option value="podStartup">Pod startup (restart)</option>
-            <option value="oom">Container killed or OOM</option>
-            <option value="audit">Audit object changes</option>
-            <option value="job">Job logs by job id</option>
-            <option value="pod">Search by pod name</option>
-            <option value="tail">Simple tail of recent logs</option>
-          </select>
-        </div>
-
-        <div class="space-y-2">
           <label class="block font-medium" for="tenantIdInput">
             Tenant id
           </label>
@@ -82,18 +62,6 @@
             type="text"
             class="w-full border rounded px-2 py-1"
             placeholder="Example: Authentication FAILURE"
-          />
-        </div>
-
-        <div class="space-y-2">
-          <label class="block font-medium" for="usernameInput">
-            Username in logs (optional)
-          </label>
-          <input
-            id="usernameInput"
-            type="text"
-            class="w-full border rounded px-2 py-1"
-            placeholder="Example: 37roblero"
           />
         </div>
 
@@ -122,17 +90,25 @@
         </div>
 
         <div class="space-y-2">
-          <label class="block font-medium" for="tailSizeInput">
-            Tail size (for Simple tail)
+          <label class="block font-medium" for="ingressIpInput">
+            Ingress IP httpRequest.remoteIp (optional)
           </label>
           <input
-            id="tailSizeInput"
-            type="number"
-            min="1"
-            step="1"
+            id="ingressIpInput"
+            type="text"
             class="w-full border rounded px-2 py-1"
-            value="100"
+            placeholder="Example: 203.0.113.42"
           />
+          <div class="flex items-center gap-2 mt-1">
+            <input
+              id="allTenantsCheckbox"
+              type="checkbox"
+              class="h-4 w-4"
+            />
+            <label for="allTenantsCheckbox" class="text-xs text-gray-600">
+              For ingress search, do not add kubernetes.namespace filter (all tenants)
+            </label>
+          </div>
         </div>
       </div>
 
@@ -174,7 +150,7 @@
 
       <div class="mt-4">
         <label class="block text-sm font-medium mb-2" for="queryOutput">
-          Generated JSON query (paste into Kibana Discover -> edit query)
+          Generated JSON query (paste into Kibana Discover edit query)
         </label>
         <textarea
           id="queryOutput"
@@ -186,14 +162,15 @@
 
     <section class="bg-white rounded-lg shadow p-4 sm:p-6 text-sm space-y-2">
       <h2 class="text-lg font-semibold text-sky-700">
-        Template behavior quick notes
+        Query builder notes
       </h2>
       <ul class="list-disc list-inside space-y-1">
-        <li>All templates add kubernetes.namespace set to idaas-tenantId if provided, or idaas-TENANT_ID if blank.</li>
-        <li>Generic text search uses your Keywords in message with match_phrase on message.</li>
-        <li>Auth failures and success use a fixed phrase and optionally add the username as a match on message.</li>
-        <li>Job logs uses clusteredJob_id set to the Job id or name you enter.</li>
-        <li>Simple tail builds a query with size and sort by @timestamp desc.</li>
+        <li>By default a kubernetes.namespace filter is added using idaas-tenantId or idaas-TENANT_ID.</li>
+        <li>If you set an ingress IP and tick the all tenants checkbox, the namespace filter is skipped.</li>
+        <li>Keywords in message adds a match_phrase on message.</li>
+        <li>Job id adds a match_phrase on clusteredJob_id.</li>
+        <li>Pod name adds a term on kubernetes.pod.name.</li>
+        <li>Ingress IP adds a term on httpRequest.remoteIp.</li>
       </ul>
     </section>
   </main>
@@ -255,188 +232,63 @@
     }
 
     function buildQueryObject() {
-      const template = document.getElementById("templateSelect").value;
       const tenantId = document.getElementById("tenantIdInput").value || "";
       const messageText = document.getElementById("messageTextInput").value || "";
-      const username = document.getElementById("usernameInput").value || "";
       const jobId = document.getElementById("jobIdInput").value || "";
       const podName = document.getElementById("podNameInput").value || "";
-      const tailSizeInput = document.getElementById("tailSizeInput").value;
-      const tailSize = parseInt(tailSizeInput, 10) > 0 ? parseInt(tailSizeInput, 10) : 100;
+      const ingressIp = document.getElementById("ingressIpInput").value || "";
+      const allTenants = document.getElementById("allTenantsCheckbox").checked;
 
       const namespace = getNamespaceValue(tenantId);
       const filter = [];
-      filter.push({ term: { "kubernetes.namespace": namespace } });
+      const must = [];
 
-      if (template === "generic") {
-        const bool = { filter: filter };
-        const trimmed = messageText.trim();
-        if (trimmed) {
-          bool.must = [
-            { match_phrase: { message: trimmed } }
-          ];
-        }
+      const trimmedIngress = ingressIp.trim();
+      const trimmedMessage = messageText.trim();
+      const trimmedJob = jobId.trim();
+      const trimmedPod = podName.trim();
+
+      const shouldSkipNamespace = allTenants && trimmedIngress.length > 0;
+
+      if (!shouldSkipNamespace) {
+        filter.push({ term: { "kubernetes.namespace": namespace } });
+      }
+
+      if (trimmedMessage) {
+        must.push({ match_phrase: { message: trimmedMessage } });
+      }
+
+      if (trimmedJob) {
+        filter.push({ match_phrase: { clusteredJob_id: trimmedJob } });
+      }
+
+      if (trimmedPod) {
+        filter.push({ term: { "kubernetes.pod.name": trimmedPod } });
+      }
+
+      if (trimmedIngress) {
+        filter.push({ term: { "httpRequest.remoteIp": trimmedIngress } });
+      }
+
+      if (!filter.length && !must.length) {
         return {
           query: {
-            bool: bool
+            match_all: {}
           }
         };
       }
 
-      if (template === "authFailure") {
-        const must = [
-          { match_phrase: { message: "Authentication FAILURE" } }
-        ];
-        if (messageText.trim()) {
-          must.push({ match_phrase: { message: messageText.trim() } });
-        }
-        const bool = {
-          filter: filter,
-          must: must
-        };
-        const should = [];
-        if (username.trim()) {
-          should.push({ match: { message: username.trim() } });
-        }
-        if (should.length > 0) {
-          bool.should = should;
-          bool.minimum_should_match = 0;
-        }
-        return {
-          query: {
-            bool: bool
-          }
-        };
+      const bool = {};
+      if (filter.length) {
+        bool.filter = filter;
+      }
+      if (must.length) {
+        bool.must = must;
       }
 
-      if (template === "authSuccess") {
-        const must = [
-          { match_phrase: { message: "Authentication SUCCESS" } }
-        ];
-        if (messageText.trim()) {
-          must.push({ match_phrase: { message: messageText.trim() } });
-        }
-        const bool = {
-          filter: filter,
-          must: must
-        };
-        const should = [];
-        if (username.trim()) {
-          should.push({ match: { message: username.trim() } });
-        }
-        if (should.length > 0) {
-          bool.should = should;
-          bool.minimum_should_match = 0;
-        }
-        return {
-          query: {
-            bool: bool
-          }
-        };
-      }
-
-      if (template === "podStartup") {
-        const must = [
-          { term: { "kubernetes.namespace": namespace } },
-          { match_phrase: { message: "Started RapidIdentity" } }
-        ];
-        if (messageText.trim()) {
-          must.push({ match_phrase: { message: messageText.trim() } });
-        }
-        return {
-          query: {
-            bool: {
-              must: must
-            }
-          }
-        };
-      }
-
-      if (template === "oom") {
-        const queryText = messageText.trim()
-          ? "\"exit code 137\" OR OOMKilled OR \"Killed process\" OR " + messageText.trim()
-          : "\"exit code 137\" OR OOMKilled OR \"Killed process\"";
-        return {
-          query: {
-            bool: {
-              filter: filter,
-              must: {
-                query_string: {
-                  query: queryText
-                }
-              }
-            }
-          }
-        };
-      }
-
-      if (template === "audit") {
-        const must = [
-          { match_phrase: { message: "AUDIT" } }
-        ];
-        if (messageText.trim()) {
-          must.push({ match_phrase: { message: messageText.trim() } });
-        }
-        return {
-          query: {
-            bool: {
-              filter: filter,
-              must: must
-            }
-          }
-        };
-      }
-
-      if (template === "job") {
-        const jobIdentifier = jobId.trim() || "JOB_IDENTIFIER";
-        return {
-          query: {
-            bool: {
-              filter: [
-                { term: { "kubernetes.namespace": namespace } },
-                { match_phrase: { clusteredJob_id: jobIdentifier } }
-              ]
-            }
-          }
-        };
-      }
-
-      if (template === "pod") {
-        const pod = podName.trim() || "POD_NAME";
-        const must = [
-          { term: { "kubernetes.namespace": namespace } },
-          { term: { "kubernetes.pod.name": pod } }
-        ];
-        if (messageText.trim()) {
-          must.push({ match_phrase: { message: messageText.trim() } });
-        }
-        return {
-          query: {
-            bool: {
-              must: must
-            }
-          }
-        };
-      }
-
-      if (template === "tail") {
-        return {
-          size: tailSize,
-          sort: [
-            { "@timestamp": { order: "desc" } }
-          ],
-          query: {
-            bool: {
-              filter: filter
-            }
-          }
-        };
-      }
-
-      const fallbackBool = { filter: filter };
       return {
         query: {
-          bool: fallbackBool
+          bool: bool
         }
       };
     }
@@ -470,7 +322,7 @@
       }
       savedQueries
         .slice()
-        .sort((a, b) => {
+        .sort(function (a, b) {
           return a.name.localeCompare(b.name);
         })
         .forEach(function (q) {
