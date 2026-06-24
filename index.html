@@ -54,12 +54,12 @@
               <label class="help-label relative inline-flex w-fit cursor-help font-medium text-slate-700" for="outputFormatSelect" tabindex="0">
                 Output format
                 <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                  KQL is for the Discover query bar. Filter JSON is for Kibana's Add filter editor. Search body is for API/dev-tool use.
+                  KQL is for the Discover query bar. Query DSL JSON is for Kibana's Add filter editor, including Edit as Query DSL. Search body is for API/dev-tool use.
                 </span>
               </label>
               <select id="outputFormatSelect" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
                 <option value="kql">KQL query bar</option>
-                <option value="discover">Discover filter JSON</option>
+                <option value="discover">Query DSL JSON</option>
                 <option value="body">Elasticsearch search body</option>
                 <option value="esql">ES|QL</option>
               </select>
@@ -89,7 +89,7 @@
                 <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="tenantIdInput" tabindex="0">
                   Tenant ID
                   <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds kubernetes.namespace as idaas-&lt;tenant ID&gt;. Leave blank for a global search.
+                    Adds kubernetes.namespace as idaas-&lt;tenant ID&gt;. With hosted customers, scope matches either path.
                   </span>
                 </label>
                 <input id="tenantIdInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
@@ -97,9 +97,9 @@
 
               <div class="space-y-1">
                 <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="includeCustomersInput" tabindex="0">
-                  Include customers
+                  Hosted / on-prem customers
                   <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds fields.customer filters. Try cps or ncdpi, and separate multiple values with commas, semicolons, or new lines.
+                    Adds fields.customer for EC2-hosted or on-prem style tenants. Try cps or ncdpi, and separate values with commas, semicolons, or new lines.
                   </span>
                 </label>
                 <input id="includeCustomersInput" type="text" list="knownCustomers" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
@@ -128,6 +128,7 @@
             <datalist id="knownCustomers">
               <option value="cps"></option>
               <option value="ncdpi"></option>
+              <option value="ncipd"></option>
             </datalist>
             <datalist id="environmentValues">
               <option value="prod"></option>
@@ -751,6 +752,19 @@ fields.ri_role</textarea>
       };
     }
 
+    function ruleJsonClause(rule) {
+      if (rule.operator === "any") return groupedJsonClause(rule.field, rule.values);
+      if (rule.operator === "scopeAny") {
+        return {
+          bool: {
+            should: rule.rules.map(ruleJsonClause),
+            minimum_should_match: 1
+          }
+        };
+      }
+      return jsonClause(rule);
+    }
+
     function groupedKqlClause(field, values) {
       if (values.length === 1) return kqlClause({ field: field, operator: "is", value: values[0] });
       return field + ": (" + values.map(function (value) {
@@ -758,11 +772,40 @@ fields.ri_role</textarea>
       }).join(" OR ") + ")";
     }
 
+    function ruleKqlClause(rule) {
+      if (rule.operator === "any") return groupedKqlClause(rule.field, rule.values);
+      if (rule.operator === "scopeAny") {
+        return rule.rules.map(ruleKqlClause).filter(Boolean).join(" OR ");
+      }
+      return kqlClause(rule);
+    }
+
     function groupedEsqlClause(field, values) {
       if (values.length === 1) return esqlClause({ field: field, operator: "is", value: values[0] });
       return "(" + values.map(function (value) {
         return esqlClause({ field: field, operator: "is", value: value });
       }).join(" OR ") + ")";
+    }
+
+    function ruleEsqlClause(rule) {
+      if (rule.operator === "any") return groupedEsqlClause(rule.field, rule.values);
+      if (rule.operator === "scopeAny") {
+        return rule.rules.map(ruleEsqlClause).filter(Boolean).join(" OR ");
+      }
+      return esqlClause(rule);
+    }
+
+    function scopedRule(namespace, includeCustomers) {
+      const scopeRules = [];
+      if (namespace) {
+        scopeRules.push({ mode: "include", field: "kubernetes.namespace", operator: "is", value: namespace });
+      }
+      if (includeCustomers.length) {
+        scopeRules.push({ mode: "include", field: "fields.customer", operator: "any", values: includeCustomers });
+      }
+      if (scopeRules.length === 1) return scopeRules[0];
+      if (scopeRules.length > 1) return { mode: "include", operator: "scopeAny", rules: scopeRules };
+      return null;
     }
 
     function validateRule(rule, errors, label) {
@@ -829,9 +872,9 @@ fields.ri_role</textarea>
       const namespace = getNamespaceValue($("tenantIdInput").value);
       const includeCustomers = uniqueValues(splitList($("includeCustomersInput").value));
       const excludeCustomers = uniqueValues(splitList($("excludeCustomersInput").value));
+      const scope = scopedRule(namespace, includeCustomers);
 
-      if (namespace) rules.push({ mode: "include", field: "kubernetes.namespace", operator: "is", value: namespace });
-      if (includeCustomers.length) rules.push({ mode: "include", field: "fields.customer", operator: "any", values: includeCustomers });
+      if (scope) rules.push(scope);
       if (excludeCustomers.length) rules.push({ mode: "exclude", field: "fields.customer", operator: "any", values: excludeCustomers });
 
       [
@@ -861,12 +904,7 @@ fields.ri_role</textarea>
       const mustNot = [];
 
       rules.forEach(function (rule) {
-        let clause;
-        if (rule.operator === "any") {
-          clause = groupedJsonClause(rule.field, rule.values);
-        } else {
-          clause = jsonClause(rule);
-        }
+        const clause = ruleJsonClause(rule);
 
         if (rule.mode === "exclude") {
           mustNot.push(clause);
@@ -891,9 +929,7 @@ fields.ri_role</textarea>
     function buildKqlQuery(rules) {
       const parts = [];
       rules.forEach(function (rule) {
-        const clause = rule.operator === "any"
-          ? groupedKqlClause(rule.field, rule.values)
-          : kqlClause(rule);
+        const clause = ruleKqlClause(rule);
         if (!clause) return;
         parts.push(rule.mode === "exclude" ? "NOT (" + clause + ")" : "(" + clause + ")");
       });
@@ -905,9 +941,7 @@ fields.ri_role</textarea>
       const lines = ["FROM " + indexPattern];
       const whereParts = [];
       rules.forEach(function (rule) {
-        const clause = rule.operator === "any"
-          ? groupedEsqlClause(rule.field, rule.values)
-          : esqlClause(rule);
+        const clause = ruleEsqlClause(rule);
         if (!clause) return;
         whereParts.push(rule.mode === "exclude" ? "NOT (" + clause + ")" : "(" + clause + ")");
       });
