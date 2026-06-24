@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RapidIdentity Kibana Query Builder</title>
+  <title>RapidIdentity Kibana Query DSL Builder</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .tooltip-panel {
@@ -23,7 +23,7 @@
   <header class="border-b border-slate-200 bg-white">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
       <h1 class="text-xl font-semibold tracking-tight text-slate-950">
-        RapidIdentity Kibana Query Builder
+        RapidIdentity Kibana Query DSL Builder
       </h1>
       <div class="hidden text-xs font-medium uppercase tracking-wide text-slate-400 sm:block">
         Browser localStorage
@@ -34,12 +34,12 @@
   <main class="mx-auto max-w-7xl px-4 py-6">
     <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
       <div class="border-b border-slate-200 px-4 py-4 sm:px-6">
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_46rem] lg:items-end">
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_24rem] lg:items-end">
           <h2 class="text-lg font-semibold text-slate-950">
             Query Criteria
           </h2>
 
-          <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+          <div class="grid grid-cols-1 gap-3 text-sm">
             <div class="space-y-1">
               <label class="help-label relative inline-flex w-fit cursor-help font-medium text-slate-700" for="queryNameInput" tabindex="0">
                 Saved query name
@@ -48,31 +48,6 @@
                 </span>
               </label>
               <input id="queryNameInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
-            </div>
-
-            <div class="space-y-1">
-              <label class="help-label relative inline-flex w-fit cursor-help font-medium text-slate-700" for="outputFormatSelect" tabindex="0">
-                Output format
-                <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                  KQL is for the Discover query bar. Query DSL JSON is for Kibana's Add filter editor, including Edit as Query DSL. Search body is for API/dev-tool use.
-                </span>
-              </label>
-              <select id="outputFormatSelect" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
-                <option value="kql">KQL query bar</option>
-                <option value="discover">Query DSL JSON</option>
-                <option value="body">Elasticsearch search body</option>
-                <option value="esql">ES|QL</option>
-              </select>
-            </div>
-
-            <div class="space-y-1">
-              <label class="help-label relative inline-flex w-fit cursor-help font-medium text-slate-700" for="indexPatternInput" tabindex="0">
-                Data view or index
-                <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                  Used in ES|QL and API output. Your vault notes point centralized logging searches at filebeat-*.
-                </span>
-              </label>
-              <input id="indexPatternInput" type="text" value="filebeat-*" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
             </div>
           </div>
         </div>
@@ -84,12 +59,12 @@
             <legend class="text-sm font-semibold text-slate-950">
               Scope
             </legend>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div class="space-y-1">
                 <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="tenantIdInput" tabindex="0">
-                  Tenant ID
+                  Cloud tenant ID
                   <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds kubernetes.namespace as idaas-&lt;tenant ID&gt;. With hosted customers, scope matches either path.
+                    Searches kubernetes.namespace as idaas-&lt;tenant ID&gt;. Use this for normal cloud tenants.
                   </span>
                 </label>
                 <input id="tenantIdInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
@@ -97,9 +72,9 @@
 
               <div class="space-y-1">
                 <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="includeCustomersInput" tabindex="0">
-                  Hosted / on-prem customers
+                  Hosted customer
                   <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds fields.customer for EC2-hosted or on-prem style tenants. Try cps or ncdpi, and separate values with commas, semicolons, or new lines.
+                    Searches fields.customer for hosted EC2 or on-prem style tenants. Suggestions are not a limit.
                   </span>
                 </label>
                 <input id="includeCustomersInput" type="text" list="knownCustomers" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
@@ -114,82 +89,102 @@
                 </label>
                 <input id="excludeCustomersInput" type="text" list="knownCustomers" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
-
-              <div class="space-y-1">
-                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="environmentInput" tabindex="0">
-                  Environment
-                  <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds fields.environment when centralized logs expose it.
-                  </span>
-                </label>
-                <input id="environmentInput" type="text" list="environmentValues" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
-              </div>
             </div>
             <datalist id="knownCustomers">
               <option value="cps"></option>
               <option value="ncdpi"></option>
-              <option value="ncipd"></option>
-            </datalist>
-            <datalist id="environmentValues">
-              <option value="prod"></option>
-              <option value="production"></option>
-              <option value="staging"></option>
-              <option value="test"></option>
             </datalist>
           </fieldset>
 
           <fieldset class="space-y-4">
             <legend class="text-sm font-semibold text-slate-950">
-              Message And Source
+              Debugger / Log Search
             </legend>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="loggerInput" tabindex="0">
+                  Logger / debugger
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Searches logger with wildcards, useful after enabling a library debugger such as smb.
+                  </span>
+                </label>
+                <input id="loggerInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="levelInput" tabindex="0">
+                  Log level
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Searches level. Debuggers usually create DEBUG or TRACE records.
+                  </span>
+                </label>
+                <input id="levelInput" type="text" list="logLevelValues" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="userIdInput" tabindex="0">
+                  User ID
+                  <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Searches user_id when the log record has an affected user.
+                  </span>
+                </label>
+                <input id="userIdInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+              </div>
+
               <div class="space-y-1 lg:col-span-2">
                 <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="messageTextInput" tabindex="0">
-                  Message phrase
+                  Message text
                   <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Searches the message field as a phrase. Good for exact fragments like a batch insert of.
+                    Searches message for the text you type.
                   </span>
                 </label>
                 <input id="messageTextInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
 
               <div class="space-y-1">
-                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="exceptionTextInput" tabindex="0">
-                  Exception phrase
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="requestUriInput" tabindex="0">
+                  Request URI
                   <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Searches the exception field when the stack trace is split away from message.
+                    Searches http_request_uri with wildcards.
                   </span>
                 </label>
-                <input id="exceptionTextInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+                <input id="requestUriInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
 
               <div class="space-y-1">
-                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="jobIdInput" tabindex="0">
-                  Job ID or name
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="clientIpInput" tabindex="0">
+                  Client IP
                   <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds clusteredJob_id, useful for Connect scheduled-job and action-set investigations.
+                    Searches client_ip and client_ip_forwarded.
                   </span>
                 </label>
-                <input id="jobIdInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+                <input id="clientIpInput" type="text" inputmode="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
 
               <div class="space-y-1">
-                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="ingressIpInput" tabindex="0">
-                  Ingress remote IP
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="threadInput" tabindex="0">
+                  Thread
                   <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds httpRequest.remoteIp. Leave Tenant ID blank for all-tenant ingress searches.
+                    Searches thread when you need to follow one execution path.
                   </span>
                 </label>
-                <input id="ingressIpInput" type="text" inputmode="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+                <input id="threadInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
             </div>
+            <datalist id="logLevelValues">
+              <option value="TRACE"></option>
+              <option value="DEBUG"></option>
+              <option value="INFO"></option>
+              <option value="WARN"></option>
+              <option value="ERROR"></option>
+            </datalist>
           </fieldset>
 
           <fieldset class="space-y-4">
             <legend class="text-sm font-semibold text-slate-950">
-              Time And Evidence
+              Time
             </legend>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div class="space-y-1">
                 <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="timeWindowSelect" tabindex="0">
                   Time filter
@@ -226,33 +221,6 @@
                 </label>
                 <input id="customEndInput" type="datetime-local" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
-
-              <div class="flex items-end">
-                <label class="flex min-h-10 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700">
-                  <input id="includeEvidenceFieldsCheckbox" type="checkbox" class="h-4 w-4 rounded border-slate-300" checked />
-                  Evidence columns
-                </label>
-              </div>
-            </div>
-
-            <div class="space-y-1">
-              <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="evidenceFieldsInput" tabindex="0">
-                Evidence columns
-                <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                  These are the fields your notes call out for preserving log evidence. Used in ES|QL KEEP and API _source output.
-                </span>
-              </label>
-              <textarea id="evidenceFieldsInput" class="h-24 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-xs leading-5 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" spellcheck="false">@timestamp
-message
-exception
-agent.hostname
-cloud.instance.id
-cloud.region
-cloud.availability_zone
-fields.customer
-fields.environment
-fields.application
-fields.ri_role</textarea>
             </div>
           </fieldset>
 
@@ -311,9 +279,6 @@ fields.ri_role</textarea>
             <button id="copyQueryButton" class="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white">
               Copy
             </button>
-            <button id="copyEvidenceButton" class="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white">
-              Copy columns
-            </button>
             <button id="resetButton" class="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white">
               Reset
             </button>
@@ -335,9 +300,9 @@ fields.ri_role</textarea>
 
           <div class="space-y-2">
             <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="queryOutput" tabindex="0">
-              Generated output
+              Query DSL JSON
               <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                Output changes with the selected format. Build or Copy always regenerates from the current fields.
+                Paste this into Kibana's Add filter dialog when it is showing Elasticsearch Query DSL.
               </span>
             </label>
             <textarea id="queryOutput" class="h-[42rem] w-full resize-y rounded-md border border-slate-300 bg-white px-3 py-3 font-mono text-xs leading-5 text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" spellcheck="false"></textarea>
@@ -417,40 +382,78 @@ fields.ri_role</textarea>
   <script>
     const STORAGE_KEY = "riKibanaQueries";
     const FIELD_STORAGE_KEY = "riKibanaFieldCatalog";
-    const DEFAULT_EVIDENCE_FIELDS = [
-      "@timestamp",
-      "message",
-      "exception",
-      "agent.hostname",
-      "cloud.instance.id",
-      "cloud.region",
-      "cloud.availability_zone",
-      "fields.customer",
-      "fields.environment",
-      "fields.application",
-      "fields.ri_role"
-    ];
     const BASE_FIELD_OPTIONS = [
       "@timestamp",
-      "message",
-      "exception",
-      "fields.customer",
-      "fields.environment",
-      "fields.application",
-      "fields.ri_role",
-      "clusteredJob_id",
-      "kubernetes.namespace",
       "kubernetes.container.name",
       "kubernetes.labels.app",
+      "kubernetes.namespace",
       "kubernetes.pod.name",
-      "httpRequest.remoteIp",
-      "agent.hostname",
-      "cloud.instance.id",
-      "cloud.region",
-      "cloud.availability_zone",
       "logger",
       "level",
+      "message",
+      "_id",
+      "_index",
+      "_score",
+      "agent.type",
+      "client_ip",
+      "client_ip_forwarded",
+      "client_user_agent",
+      "cloud.account.id",
+      "cloud.availability_zone",
+      "cloud.instance.id",
+      "cloud.region",
+      "cloud.service.name",
+      "ecs.version",
+      "fields.customer",
+      "http_request_uri",
+      "kubernetes.deployment.name",
+      "kubernetes.labels.app_kubernetes_io/domain",
+      "kubernetes.labels.app_kubernetes_io/instance",
+      "kubernetes.labels.app_role",
+      "kubernetes.labels.customer",
+      "kubernetes.labels.department",
+      "kubernetes.labels.deployment_id",
+      "kubernetes.labels.owner",
+      "kubernetes.labels.project",
+      "kubernetes.labels.tenant_name",
+      "kubernetes.labels.tenant_type",
+      "kubernetes.labels.topology_kubernetes_io/region",
+      "kubernetes.labels.topology_kubernetes_io/zone",
+      "kubernetes.namespace_labels.cd_tech",
+      "kubernetes.namespace_labels.customer",
+      "kubernetes.namespace_labels.department",
+      "kubernetes.namespace_labels.deployment_id",
+      "kubernetes.namespace_labels.expires_on",
+      "kubernetes.namespace_labels.features",
+      "kubernetes.namespace_labels.owner",
+      "kubernetes.namespace_labels.project",
+      "kubernetes.namespace_labels.status",
+      "kubernetes.namespace_labels.tenant",
+      "kubernetes.namespace_labels.tenant_generator_date",
+      "kubernetes.namespace_labels.tenant_generator_version",
+      "kubernetes.namespace_labels.tenant_name",
+      "kubernetes.namespace_labels.tenant_size",
+      "kubernetes.namespace_labels.tenant_type",
+      "kubernetes.namespace_labels.use_case",
+      "kubernetes.node.labels.alpha_eksctl_io/cluster-name",
+      "kubernetes.node.labels.eks_amazonaws_com/nodegroup",
+      "kubernetes.node.labels.topology_k8s_aws/zone-id",
+      "kubernetes.node.name",
+      "kubernetes.pod.ip",
+      "kubernetes.replicaset.name",
+      "log.file.path",
+      "log.offset",
+      "thread",
+      "time",
+      "user_id",
+      "clusteredJob_id",
+      "exception",
       "error.message",
+      "fields.application",
+      "fields.environment",
+      "fields.ri_role",
+      "httpRequest.remoteIp",
+      "agent.hostname",
       "custom"
     ];
     const TERM_FIELDS = new Set([
@@ -498,7 +501,7 @@ fields.ri_role</textarea>
       if (!field) return "";
       if (field === "custom") return "";
       if (field.length > 160) return "";
-      if (!/^[A-Za-z_@][A-Za-z0-9_.:-]*$/.test(field)) return "";
+      if (!/^[A-Za-z_@][A-Za-z0-9_.:/-]*$/.test(field)) return "";
       if (/^(Field|Value|Operator|Select|Include|Exclude)$/i.test(field)) return "";
       return field;
     }
@@ -582,11 +585,11 @@ fields.ri_role</textarea>
       return "idaas-" + trimmed;
     }
 
-    function getEvidenceFields() {
-      const fields = $("includeEvidenceFieldsCheckbox").checked
-        ? splitList($("evidenceFieldsInput").value)
-        : [];
-      return fields.length ? fields : [];
+    function wildcardSearchValue(value) {
+      const trimmed = trimValue(value);
+      if (!trimmed) return "";
+      if (/[*?]/.test(trimmed)) return trimmed;
+      return "*" + trimmed + "*";
     }
 
     function safeLoadSavedQueries() {
@@ -606,44 +609,6 @@ fields.ri_role</textarea>
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(savedQueries));
       } catch (e) {
       }
-    }
-
-    function escapeKqlValue(value, quote) {
-      const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-      if (quote) return '"' + escaped + '"';
-      return escaped.replace(/([():<>*])/g, "\\$1");
-    }
-
-    function kqlComparableValue(value) {
-      if (/^now(?:[+-]\d+[smhdwMy])?(?:\/[smhdwMy])?$/.test(value)) return value;
-      if (/^-?\d+(?:\.\d+)?$/.test(value)) return value;
-      return escapeKqlValue(value, true);
-    }
-
-    function kqlWildcardValue(value) {
-      return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/([():<>])/g, "\\$1");
-    }
-
-    function quoteJsonString(value) {
-      return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-    }
-
-    function esqlField(field) {
-      return "`" + String(field).replace(/`/g, "``") + "`";
-    }
-
-    function esqlTimeSpan(value) {
-      const match = /^now-(\d+)([mhdw])$/.exec(value);
-      if (!match) return "";
-      const amount = match[1];
-      const unitMap = {
-        m: "minute",
-        h: "hour",
-        d: "day",
-        w: "week"
-      };
-      const unit = unitMap[match[2]];
-      return amount + " " + unit + (amount === "1" ? "" : "s");
     }
 
     function parseRangeValue(value) {
@@ -690,55 +655,6 @@ fields.ri_role</textarea>
       return { match_phrase: { [field]: value } };
     }
 
-    function kqlClause(rule) {
-      const field = rule.field;
-      const value = rule.value;
-      if (rule.operator === "exists") return field + ": *";
-      if (rule.operator === "contains") return field + ": " + escapeKqlValue(value, false);
-      if (rule.operator === "wildcard") return field + ": " + kqlWildcardValue(value);
-      if (rule.operator === "gte") return field + " >= " + kqlComparableValue(value);
-      if (rule.operator === "lte") return field + " <= " + kqlComparableValue(value);
-      if (rule.operator === "range") {
-        const range = parseRangeValue(value);
-        if (!range) return "";
-        const parts = [];
-        if (range.gte) parts.push(field + " >= " + kqlComparableValue(range.gte));
-        if (range.lte) parts.push(field + " <= " + kqlComparableValue(range.lte));
-        return parts.join(" AND ");
-      }
-      return field + ": " + escapeKqlValue(value, true);
-    }
-
-    function esqlClause(rule) {
-      const field = esqlField(rule.field);
-      const value = '"' + quoteJsonString(rule.value) + '"';
-      if (rule.operator === "exists") return field + " IS NOT NULL";
-      if (rule.field === "@timestamp" && rule.operator === "gte") {
-        const timeSpan = esqlTimeSpan(rule.value);
-        if (timeSpan) return "TRANGE(" + timeSpan + ")";
-      }
-      if (rule.field === "@timestamp" && rule.operator === "range") {
-        const range = parseRangeValue(rule.value);
-        if (range && range.gte && range.lte) return "TRANGE(" + range.gte + ", " + range.lte + ")";
-      }
-      if (rule.operator === "is" && FULL_TEXT_FIELDS.has(rule.field)) {
-        return field + " LIKE " + '"*' + quoteJsonString(rule.value) + '*"';
-      }
-      if (rule.operator === "contains") return field + " LIKE " + '"*' + quoteJsonString(rule.value) + '*"';
-      if (rule.operator === "wildcard") return field + " LIKE " + value;
-      if (rule.operator === "gte") return field + " >= " + value;
-      if (rule.operator === "lte") return field + " <= " + value;
-      if (rule.operator === "range") {
-        const range = parseRangeValue(rule.value);
-        if (!range) return "";
-        const parts = [];
-        if (range.gte) parts.push(field + " >= " + '"' + quoteJsonString(range.gte) + '"');
-        if (range.lte) parts.push(field + " <= " + '"' + quoteJsonString(range.lte) + '"');
-        return parts.join(" AND ");
-      }
-      return field + " == " + value;
-    }
-
     function groupedJsonClause(field, values) {
       const clauses = values.map(function (value) {
         return jsonClause({ field: field, operator: "is", value: value });
@@ -763,36 +679,6 @@ fields.ri_role</textarea>
         };
       }
       return jsonClause(rule);
-    }
-
-    function groupedKqlClause(field, values) {
-      if (values.length === 1) return kqlClause({ field: field, operator: "is", value: values[0] });
-      return field + ": (" + values.map(function (value) {
-        return escapeKqlValue(value, true);
-      }).join(" OR ") + ")";
-    }
-
-    function ruleKqlClause(rule) {
-      if (rule.operator === "any") return groupedKqlClause(rule.field, rule.values);
-      if (rule.operator === "scopeAny") {
-        return rule.rules.map(ruleKqlClause).filter(Boolean).join(" OR ");
-      }
-      return kqlClause(rule);
-    }
-
-    function groupedEsqlClause(field, values) {
-      if (values.length === 1) return esqlClause({ field: field, operator: "is", value: values[0] });
-      return "(" + values.map(function (value) {
-        return esqlClause({ field: field, operator: "is", value: value });
-      }).join(" OR ") + ")";
-    }
-
-    function ruleEsqlClause(rule) {
-      if (rule.operator === "any") return groupedEsqlClause(rule.field, rule.values);
-      if (rule.operator === "scopeAny") {
-        return rule.rules.map(ruleEsqlClause).filter(Boolean).join(" OR ");
-      }
-      return esqlClause(rule);
     }
 
     function scopedRule(namespace, includeCustomers) {
@@ -877,17 +763,26 @@ fields.ri_role</textarea>
       if (scope) rules.push(scope);
       if (excludeCustomers.length) rules.push({ mode: "exclude", field: "fields.customer", operator: "any", values: excludeCustomers });
 
-      [
-        ["environmentInput", "fields.environment", "Environment"],
-        ["messageTextInput", "message", "Message phrase"],
-        ["exceptionTextInput", "exception", "Exception phrase"],
-        ["jobIdInput", "clusteredJob_id", "Job ID or name"],
-        ["ingressIpInput", "httpRequest.remoteIp", "Ingress remote IP"]
-      ].forEach(function (entry) {
-        const el = $(entry[0]);
-        const value = el ? trimValue(el.value) : "";
-        if (value) rules.push({ mode: "include", field: entry[1], operator: "is", value: value });
-      });
+      const loggerValue = wildcardSearchValue($("loggerInput").value);
+      const requestUriValue = wildcardSearchValue($("requestUriInput").value);
+      const clientIp = trimValue($("clientIpInput").value);
+
+      if (loggerValue) rules.push({ mode: "include", field: "logger", operator: "wildcard", value: loggerValue });
+      if (trimValue($("levelInput").value)) rules.push({ mode: "include", field: "level", operator: "is", value: trimValue($("levelInput").value) });
+      if (trimValue($("userIdInput").value)) rules.push({ mode: "include", field: "user_id", operator: "is", value: trimValue($("userIdInput").value) });
+      if (trimValue($("messageTextInput").value)) rules.push({ mode: "include", field: "message", operator: "is", value: trimValue($("messageTextInput").value) });
+      if (requestUriValue) rules.push({ mode: "include", field: "http_request_uri", operator: "wildcard", value: requestUriValue });
+      if (clientIp) {
+        rules.push({
+          mode: "include",
+          operator: "scopeAny",
+          rules: [
+            { mode: "include", field: "client_ip", operator: "is", value: clientIp },
+            { mode: "include", field: "client_ip_forwarded", operator: "is", value: clientIp }
+          ]
+        });
+      }
+      if (trimValue($("threadInput").value)) rules.push({ mode: "include", field: "thread", operator: "is", value: trimValue($("threadInput").value) });
 
       const timeRule = getTimeRule(errors);
       if (timeRule) rules.push(timeRule);
@@ -926,62 +821,10 @@ fields.ri_role</textarea>
       return { bool: bool };
     }
 
-    function buildKqlQuery(rules) {
-      const parts = [];
-      rules.forEach(function (rule) {
-        const clause = ruleKqlClause(rule);
-        if (!clause) return;
-        parts.push(rule.mode === "exclude" ? "NOT (" + clause + ")" : "(" + clause + ")");
-      });
-      return parts.length ? parts.join(" AND ") : "*";
-    }
-
-    function buildEsqlQuery(rules) {
-      const indexPattern = trimValue($("indexPatternInput").value) || "filebeat-*";
-      const lines = ["FROM " + indexPattern];
-      const whereParts = [];
-      rules.forEach(function (rule) {
-        const clause = ruleEsqlClause(rule);
-        if (!clause) return;
-        whereParts.push(rule.mode === "exclude" ? "NOT (" + clause + ")" : "(" + clause + ")");
-      });
-      if (whereParts.length) lines.push("| WHERE " + whereParts.join(" AND "));
-      lines.push("| SORT `@timestamp` DESC");
-      const fields = getEvidenceFields();
-      if (fields.length) {
-        lines.push("| KEEP " + fields.map(esqlField).join(", "));
-      }
-      return lines.join("\n");
-    }
-
     function buildOutput() {
       const collected = collectRules();
       if (collected.errors.length) return { output: "", errors: collected.errors };
-      const rules = collected.rules;
-      const format = $("outputFormatSelect").value;
-
-      if (format === "kql") {
-        return { output: buildKqlQuery(rules), errors: [] };
-      }
-
-      if (format === "esql") {
-        return { output: buildEsqlQuery(rules), errors: [] };
-      }
-
-      const query = buildJsonQuery(rules);
-      if (format === "body") {
-        const body = {
-          query: query,
-          sort: [
-            { "@timestamp": { order: "desc" } }
-          ]
-        };
-        const fields = getEvidenceFields();
-        if (fields.length) body._source = fields;
-        return { output: JSON.stringify(body, null, 2), errors: [] };
-      }
-
-      return { output: JSON.stringify(query, null, 2), errors: [] };
+      return { output: JSON.stringify(buildJsonQuery(collected.rules), null, 2), errors: [] };
     }
 
     function setStatus(message, isError) {
@@ -1010,26 +853,24 @@ fields.ri_role</textarea>
     function collectState() {
       const inputIds = [
         "queryNameInput",
-        "outputFormatSelect",
-        "indexPatternInput",
         "tenantIdInput",
         "includeCustomersInput",
         "excludeCustomersInput",
-        "environmentInput",
+        "loggerInput",
+        "levelInput",
+        "userIdInput",
         "messageTextInput",
-        "exceptionTextInput",
-        "jobIdInput",
-        "ingressIpInput",
+        "requestUriInput",
+        "clientIpInput",
+        "threadInput",
         "timeWindowSelect",
         "customStartInput",
-        "customEndInput",
-        "evidenceFieldsInput"
+        "customEndInput"
       ];
       const values = {};
       inputIds.forEach(function (id) {
         values[id] = $(id).value;
       });
-      values.includeEvidenceFieldsCheckbox = $("includeEvidenceFieldsCheckbox").checked;
       values.rules = Array.from(document.querySelectorAll("[data-filter-rule]")).map(function (row) {
         return {
           mode: row.querySelector("[data-rule-mode]").value,
@@ -1056,6 +897,10 @@ fields.ri_role</textarea>
       $("filterRulesList").innerHTML = "";
       const migratedRules = (state.rules || []).slice();
       [
+        ["environmentInput", "fields.environment"],
+        ["exceptionTextInput", "exception"],
+        ["jobIdInput", "clusteredJob_id"],
+        ["ingressIpInput", "httpRequest.remoteIp"],
         ["podNameInput", "kubernetes.pod.name"],
         ["applicationInput", "fields.application"],
         ["riRoleInput", "fields.ri_role"],
@@ -1078,20 +923,11 @@ fields.ri_role</textarea>
     }
 
     function resetForm() {
-      const preserveIndex = $("indexPatternInput").value || "filebeat-*";
       document.querySelectorAll("input, textarea, select").forEach(function (el) {
-        if (el.id === "outputFormatSelect") {
-          el.value = "kql";
-        } else if (el.id === "indexPatternInput") {
-          el.value = preserveIndex;
-        } else if (el.id === "timeWindowSelect") {
+        if (el.id === "timeWindowSelect") {
           el.value = "picker";
-        } else if (el.id === "evidenceFieldsInput") {
-          el.value = DEFAULT_EVIDENCE_FIELDS.join("\n");
         } else if (el.id === "fieldCatalogInput") {
           el.value = importedFieldOptions.join("\n");
-        } else if (el.id === "includeEvidenceFieldsCheckbox") {
-          el.checked = true;
         } else if (el.type !== "checkbox") {
           el.value = "";
         }
@@ -1126,9 +962,8 @@ fields.ri_role</textarea>
           left.addEventListener("click", function () {
             if (q.state) applyState(q.state);
             $("queryNameInput").value = q.name;
-            $("queryOutput").value = q.query;
             $("savedQueriesMenu").classList.add("hidden");
-            setStatus("Loaded saved query: " + q.name + ".", false);
+            buildIntoOutput("Loaded saved query: " + q.name + ".");
           });
 
           const delBtn = document.createElement("button");
@@ -1298,19 +1133,12 @@ fields.ri_role</textarea>
       await copyText(output, "Copied generated output.");
     }
 
-    async function copyEvidenceFields() {
-      const fields = getEvidenceFields();
-      const text = fields.length ? fields.join("\n") : DEFAULT_EVIDENCE_FIELDS.join("\n");
-      await copyText(text, "Copied evidence columns.");
-    }
-
     function setupEventHandlers() {
       $("createQueryButton").addEventListener("click", saveCurrentQuery);
       $("justBuildButton").addEventListener("click", function () {
         buildIntoOutput("Built output.");
       });
       $("copyQueryButton").addEventListener("click", copyQueryOutput);
-      $("copyEvidenceButton").addEventListener("click", copyEvidenceFields);
       $("resetButton").addEventListener("click", resetForm);
       $("savedQueriesToggle").addEventListener("click", toggleSavedQueriesMenu);
       $("importFieldsButton").addEventListener("click", importFieldCatalog);
