@@ -7,191 +7,299 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .tooltip-panel {
-      width: min(18rem, calc(100vw - 2rem));
+      display: none;
+      width: min(19rem, calc(100vw - 2rem));
+    }
+
+    .help-label:hover .tooltip-panel,
+    .help-label:focus .tooltip-panel,
+    .help-label:focus-within .tooltip-panel {
+      display: block;
     }
   </style>
 </head>
 
 <body class="bg-slate-50 text-slate-900 antialiased">
   <header class="border-b border-slate-200 bg-white">
-    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-      <div>
-        <h1 class="text-xl font-semibold tracking-tight text-slate-950">
-          RapidIdentity Kibana Query Builder
-        </h1>
-      </div>
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
+      <h1 class="text-xl font-semibold tracking-tight text-slate-950">
+        RapidIdentity Kibana Query Builder
+      </h1>
       <div class="hidden text-xs font-medium uppercase tracking-wide text-slate-400 sm:block">
         Browser localStorage
       </div>
     </div>
   </header>
 
-  <main class="mx-auto max-w-6xl px-4 py-6">
+  <main class="mx-auto max-w-7xl px-4 py-6">
     <section class="rounded-lg border border-slate-200 bg-white shadow-sm">
       <div class="border-b border-slate-200 px-4 py-4 sm:px-6">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h2 class="text-lg font-semibold text-slate-950">
-              Query Criteria
-            </h2>
-          </div>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_46rem] lg:items-end">
+          <h2 class="text-lg font-semibold text-slate-950">
+            Query Criteria
+          </h2>
 
-          <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2 lg:w-[34rem]">
+          <div class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
             <div class="space-y-1">
-              <label class="flex items-center gap-2 font-medium text-slate-700" for="queryNameInput">
+              <label class="help-label relative inline-flex w-fit cursor-help font-medium text-slate-700" for="queryNameInput" tabindex="0">
                 Saved query name
-                <span class="relative inline-flex group">
-                  <button type="button" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500" aria-label="Saved query name help">?</button>
-                  <span class="tooltip-panel pointer-events-none absolute right-0 top-7 z-30 hidden rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg group-hover:block group-focus-within:block">
-                    Used only for the saved-query menu. It does not change the generated Kibana query.
-                  </span>
+                <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                  Used for this app's saved menu. Saved entries now preserve the form fields when possible.
                 </span>
               </label>
               <input id="queryNameInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
             </div>
 
             <div class="space-y-1">
-              <label class="flex items-center gap-2 font-medium text-slate-700" for="outputFormatSelect">
+              <label class="help-label relative inline-flex w-fit cursor-help font-medium text-slate-700" for="outputFormatSelect" tabindex="0">
                 Output format
-                <span class="relative inline-flex group">
-                  <button type="button" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500" aria-label="Output format help">?</button>
-                  <span class="tooltip-panel pointer-events-none absolute right-0 top-7 z-30 hidden rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg group-hover:block group-focus-within:block">
-                    Discover JSON matches Kibana's edit-query popover. Query body wraps it for Elasticsearch APIs.
-                  </span>
+                <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                  KQL is for the Discover query bar. Filter JSON is for Kibana's Add filter editor. Search body is for API/dev-tool use.
                 </span>
               </label>
               <select id="outputFormatSelect" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
-                <option value="discover">Discover JSON query</option>
-                <option value="body">Elasticsearch query body</option>
+                <option value="kql">KQL query bar</option>
+                <option value="discover">Discover filter JSON</option>
+                <option value="body">Elasticsearch search body</option>
+                <option value="esql">ES|QL</option>
               </select>
+            </div>
+
+            <div class="space-y-1">
+              <label class="help-label relative inline-flex w-fit cursor-help font-medium text-slate-700" for="indexPatternInput" tabindex="0">
+                Data view or index
+                <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                  Used in ES|QL and API output. Your vault notes point centralized logging searches at filebeat-*.
+                </span>
+              </label>
+              <input id="indexPatternInput" type="text" value="filebeat-*" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
             </div>
           </div>
         </div>
       </div>
 
-      <div class="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,34rem)]">
-        <div class="space-y-6 border-b border-slate-200 p-4 sm:p-6 lg:border-b-0 lg:border-r">
+      <div class="grid gap-0 xl:grid-cols-[minmax(0,1fr)_minmax(26rem,38rem)]">
+        <div class="space-y-6 border-b border-slate-200 p-4 sm:p-6 xl:border-b-0 xl:border-r">
           <fieldset class="space-y-4">
             <legend class="text-sm font-semibold text-slate-950">
               Scope
             </legend>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div class="space-y-1">
-                <label class="flex items-center gap-2 text-sm font-medium text-slate-700" for="tenantIdInput">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="tenantIdInput" tabindex="0">
                   Tenant ID
-                  <span class="relative inline-flex group">
-                    <button type="button" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500" aria-label="Tenant ID help">?</button>
-                    <span class="tooltip-panel pointer-events-none absolute left-0 top-7 z-30 hidden rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg group-hover:block group-focus-within:block">
-                      When filled, this adds <span class="font-mono">kubernetes.namespace = idaas-&lt;tenant ID&gt;</span>. Leave it blank for a global search.
-                    </span>
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Adds kubernetes.namespace as idaas-&lt;tenant ID&gt;. Leave blank for a global search.
                   </span>
                 </label>
                 <input id="tenantIdInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
 
               <div class="space-y-1">
-                <label class="flex items-center gap-2 text-sm font-medium text-slate-700" for="ingressIpInput">
-                  Ingress remote IP
-                  <span class="relative inline-flex group">
-                    <button type="button" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500" aria-label="Ingress IP help">?</button>
-                    <span class="tooltip-panel pointer-events-none absolute left-0 top-7 z-30 hidden rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg group-hover:block group-focus-within:block">
-                      Adds a term filter on <span class="font-mono">httpRequest.remoteIp</span>. Combine with a blank Tenant ID for all tenants.
-                    </span>
-                  </span>
-                </label>
-                <input id="ingressIpInput" type="text" inputmode="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
-              </div>
-            </div>
-          </fieldset>
-
-          <fieldset class="space-y-4">
-            <legend class="text-sm font-semibold text-slate-950">
-              Customer Filters
-            </legend>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div class="space-y-2">
-                <label class="flex items-center gap-2 text-sm font-medium text-slate-700" for="includeCustomersInput">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="includeCustomersInput" tabindex="0">
                   Include customers
-                  <span class="relative inline-flex group">
-                    <button type="button" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500" aria-label="Include customers help">?</button>
-                    <span class="tooltip-panel pointer-events-none absolute left-0 top-7 z-30 hidden rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg group-hover:block group-focus-within:block">
-                      Adds one or more <span class="font-mono">fields.customer</span> filters. Multiple values are treated as OR.
-                    </span>
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Adds fields.customer filters. Separate multiple values with commas, semicolons, or new lines.
                   </span>
                 </label>
                 <input id="includeCustomersInput" type="text" list="knownCustomers" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
                 <div class="flex flex-wrap gap-2">
-                  <button type="button" data-add-customer="includeCustomersInput" data-customer-value="cps" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700">CPS</button>
-                  <button type="button" data-add-customer="includeCustomersInput" data-customer-value="ncdpi" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700">NCDPI</button>
+                  <button type="button" data-add-value="includeCustomersInput" data-value="cps" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700">CPS</button>
+                  <button type="button" data-add-value="includeCustomersInput" data-value="ncdpi" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700">NCDPI</button>
                 </div>
               </div>
 
-              <div class="space-y-2">
-                <label class="flex items-center gap-2 text-sm font-medium text-slate-700" for="excludeCustomersInput">
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="excludeCustomersInput" tabindex="0">
                   Exclude customers
-                  <span class="relative inline-flex group">
-                    <button type="button" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500" aria-label="Exclude customers help">?</button>
-                    <span class="tooltip-panel pointer-events-none absolute left-0 top-7 z-30 hidden rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg group-hover:block group-focus-within:block">
-                      Adds <span class="font-mono">must_not</span> clauses for <span class="font-mono">fields.customer</span>, useful for global searches.
-                    </span>
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Adds negated fields.customer filters, useful when broad searches need known customers removed.
                   </span>
                 </label>
                 <input id="excludeCustomersInput" type="text" list="knownCustomers" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
                 <div class="flex flex-wrap gap-2">
-                  <button type="button" data-add-customer="excludeCustomersInput" data-customer-value="cps" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">CPS</button>
-                  <button type="button" data-add-customer="excludeCustomersInput" data-customer-value="ncdpi" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">NCDPI</button>
+                  <button type="button" data-add-value="excludeCustomersInput" data-value="cps" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">CPS</button>
+                  <button type="button" data-add-value="excludeCustomersInput" data-value="ncdpi" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">NCDPI</button>
                 </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="environmentInput" tabindex="0">
+                  Environment
+                  <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Adds fields.environment when centralized logs expose it.
+                  </span>
+                </label>
+                <input id="environmentInput" type="text" list="environmentValues" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
             </div>
             <datalist id="knownCustomers">
               <option value="cps"></option>
               <option value="ncdpi"></option>
             </datalist>
+            <datalist id="environmentValues">
+              <option value="prod"></option>
+              <option value="production"></option>
+              <option value="staging"></option>
+              <option value="test"></option>
+            </datalist>
           </fieldset>
 
           <fieldset class="space-y-4">
             <legend class="text-sm font-semibold text-slate-950">
-              Common Fields
+              Message And Source
             </legend>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div class="space-y-1 md:col-span-3">
-                <label class="flex items-center gap-2 text-sm font-medium text-slate-700" for="messageTextInput">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div class="space-y-1 lg:col-span-2">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="messageTextInput" tabindex="0">
                   Message phrase
-                  <span class="relative inline-flex group">
-                    <button type="button" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500" aria-label="Message phrase help">?</button>
-                    <span class="tooltip-panel pointer-events-none absolute left-0 top-7 z-30 hidden rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg group-hover:block group-focus-within:block">
-                      Adds a <span class="font-mono">match_phrase</span> clause on <span class="font-mono">message</span>.
-                    </span>
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Searches the message field as a phrase. Good for exact fragments like a batch insert of.
                   </span>
                 </label>
                 <input id="messageTextInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
 
               <div class="space-y-1">
-                <label class="flex items-center gap-2 text-sm font-medium text-slate-700" for="jobIdInput">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="exceptionTextInput" tabindex="0">
+                  Exception phrase
+                  <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Searches the exception field when the stack trace is split away from message.
+                  </span>
+                </label>
+                <input id="exceptionTextInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="jobIdInput" tabindex="0">
                   Job ID or name
-                  <span class="relative inline-flex group">
-                    <button type="button" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500" aria-label="Job ID help">?</button>
-                    <span class="tooltip-panel pointer-events-none absolute left-0 top-7 z-30 hidden rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg group-hover:block group-focus-within:block">
-                      Adds a phrase filter on <span class="font-mono">clusteredJob_id</span>.
-                    </span>
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Adds clusteredJob_id, useful for Connect scheduled-job and action-set investigations.
                   </span>
                 </label>
                 <input id="jobIdInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
 
               <div class="space-y-1">
-                <label class="flex items-center gap-2 text-sm font-medium text-slate-700" for="podNameInput">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="podNameInput" tabindex="0">
                   Pod name
-                  <span class="relative inline-flex group">
-                    <button type="button" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500" aria-label="Pod name help">?</button>
-                    <span class="tooltip-panel pointer-events-none absolute left-0 top-7 z-30 hidden rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg group-hover:block group-focus-within:block">
-                      Adds a term filter on <span class="font-mono">kubernetes.pod.name</span>.
-                    </span>
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Adds kubernetes.pod.name.
                   </span>
                 </label>
                 <input id="podNameInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
+
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="ingressIpInput" tabindex="0">
+                  Ingress remote IP
+                  <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Adds httpRequest.remoteIp. Leave Tenant ID blank for all-tenant ingress searches.
+                  </span>
+                </label>
+                <input id="ingressIpInput" type="text" inputmode="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="applicationInput" tabindex="0">
+                  Application
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Adds fields.application when available.
+                  </span>
+                </label>
+                <input id="applicationInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="riRoleInput" tabindex="0">
+                  RI role
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Adds fields.ri_role when available.
+                  </span>
+                </label>
+                <input id="riRoleInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="hostInput" tabindex="0">
+                  Hostname
+                  <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Adds agent.hostname to pin logs to a specific appliance, host, or node.
+                  </span>
+                </label>
+                <input id="hostInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset class="space-y-4">
+            <legend class="text-sm font-semibold text-slate-950">
+              Time And Evidence
+            </legend>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="timeWindowSelect" tabindex="0">
+                  Time filter
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Kibana's time picker is usually best. Add a query time filter when you need the time range preserved in copied output.
+                  </span>
+                </label>
+                <select id="timeWindowSelect" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
+                  <option value="picker">Use Kibana time picker</option>
+                  <option value="15m">Last 15 minutes</option>
+                  <option value="1h">Last 1 hour</option>
+                  <option value="24h">Last 24 hours</option>
+                  <option value="7d">Last 7 days</option>
+                  <option value="custom">Custom range</option>
+                </select>
+              </div>
+
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="customStartInput" tabindex="0">
+                  Start time
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Used only when Time filter is Custom range.
+                  </span>
+                </label>
+                <input id="customStartInput" type="datetime-local" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+              </div>
+
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="customEndInput" tabindex="0">
+                  End time
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Leave blank for now when using a custom start.
+                  </span>
+                </label>
+                <input id="customEndInput" type="datetime-local" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+              </div>
+
+              <div class="flex items-end">
+                <label class="flex min-h-10 items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700">
+                  <input id="includeEvidenceFieldsCheckbox" type="checkbox" class="h-4 w-4 rounded border-slate-300" checked />
+                  Evidence columns
+                </label>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="evidenceFieldsInput" tabindex="0">
+                Evidence columns
+                <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                  These are the fields your notes call out for preserving log evidence. Used in ES|QL KEEP and API _source output.
+                </span>
+              </label>
+              <textarea id="evidenceFieldsInput" class="h-24 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-xs leading-5 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" spellcheck="false">@timestamp
+message
+exception
+agent.hostname
+cloud.instance.id
+cloud.region
+cloud.availability_zone
+fields.customer
+fields.environment
+fields.application
+fields.ri_role</textarea>
             </div>
           </fieldset>
 
@@ -219,15 +327,19 @@
         <aside class="space-y-4 bg-slate-50 p-4 sm:p-6">
           <div class="flex flex-wrap gap-3">
             <button id="justBuildButton" class="inline-flex items-center justify-center rounded-md bg-sky-700 px-4 py-2 text-sm font-medium text-white hover:bg-sky-800">
-              Build query
+              Build
             </button>
-
             <button id="createQueryButton" class="inline-flex items-center justify-center rounded-md border border-sky-700 px-4 py-2 text-sm font-medium text-sky-700 hover:bg-sky-50">
-              Save query
+              Save
             </button>
-
             <button id="copyQueryButton" class="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white">
               Copy
+            </button>
+            <button id="copyEvidenceButton" class="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white">
+              Copy columns
+            </button>
+            <button id="resetButton" class="inline-flex items-center justify-center rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-white">
+              Reset
             </button>
 
             <div class="relative ml-auto">
@@ -246,16 +358,13 @@
           <div id="statusMessage" class="min-h-6 text-sm text-slate-600"></div>
 
           <div class="space-y-2">
-            <label class="flex items-center gap-2 text-sm font-medium text-slate-700" for="queryOutput">
-              Generated query
-              <span class="relative inline-flex group">
-                <button type="button" class="flex h-5 w-5 items-center justify-center rounded-full border border-slate-300 text-xs text-slate-500" aria-label="Generated query help">?</button>
-                <span class="tooltip-panel pointer-events-none absolute right-0 top-7 z-30 hidden rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg group-hover:block group-focus-within:block">
-                  Paste the Discover JSON query into Kibana's edit-query popover, or switch the format for API query bodies.
-                </span>
+            <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="queryOutput" tabindex="0">
+              Generated output
+              <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                Output changes with the selected format. Build or Copy always regenerates from the current fields.
               </span>
             </label>
-            <textarea id="queryOutput" class="h-[34rem] w-full resize-y rounded-md border border-slate-300 bg-white px-3 py-3 font-mono text-xs leading-5 text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" spellcheck="false"></textarea>
+            <textarea id="queryOutput" class="h-[42rem] w-full resize-y rounded-md border border-slate-300 bg-white px-3 py-3 font-mono text-xs leading-5 text-slate-900 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" spellcheck="false"></textarea>
           </div>
         </aside>
       </div>
@@ -283,7 +392,7 @@
 
   <template id="filterRuleTemplate">
     <div data-filter-rule class="rounded-md border border-slate-200 bg-white p-3 shadow-sm">
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-[8rem_minmax(10rem,1fr)_minmax(10rem,1fr)_auto] sm:items-end">
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-[7.5rem_minmax(10rem,1fr)_9.5rem_minmax(10rem,1fr)_auto] md:items-end">
         <div class="space-y-1">
           <label class="text-xs font-medium uppercase tracking-wide text-slate-500">
             Rule
@@ -297,16 +406,22 @@
           <label class="text-xs font-medium uppercase tracking-wide text-slate-500">
             Field
           </label>
-          <select data-rule-field class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
-            <option value="fields.customer">fields.customer</option>
-            <option value="message">message</option>
-            <option value="clusteredJob_id">clusteredJob_id</option>
-            <option value="kubernetes.namespace">kubernetes.namespace</option>
-            <option value="kubernetes.pod.name">kubernetes.pod.name</option>
-            <option value="httpRequest.remoteIp">httpRequest.remoteIp</option>
-            <option value="custom">Custom field</option>
+          <select data-rule-field class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"></select>
+          <input data-rule-custom-field type="text" class="mt-2 hidden w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+        </div>
+        <div class="space-y-1">
+          <label class="text-xs font-medium uppercase tracking-wide text-slate-500">
+            Operator
+          </label>
+          <select data-rule-operator class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
+            <option value="is">Is</option>
+            <option value="contains">Contains words</option>
+            <option value="exists">Exists</option>
+            <option value="wildcard">Wildcard</option>
+            <option value="gte">Greater or equal</option>
+            <option value="lte">Less or equal</option>
+            <option value="range">Range</option>
           </select>
-          <input data-rule-custom-field type="text" class="hidden w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
         </div>
         <div class="space-y-1">
           <label class="text-xs font-medium uppercase tracking-wide text-slate-500">
@@ -325,17 +440,99 @@
 
   <script>
     const STORAGE_KEY = "riKibanaQueries";
+    const DEFAULT_EVIDENCE_FIELDS = [
+      "@timestamp",
+      "message",
+      "exception",
+      "agent.hostname",
+      "cloud.instance.id",
+      "cloud.region",
+      "cloud.availability_zone",
+      "fields.customer",
+      "fields.environment",
+      "fields.application",
+      "fields.ri_role"
+    ];
+    const FIELD_OPTIONS = [
+      "@timestamp",
+      "message",
+      "exception",
+      "fields.customer",
+      "fields.environment",
+      "fields.application",
+      "fields.ri_role",
+      "clusteredJob_id",
+      "kubernetes.namespace",
+      "kubernetes.container.name",
+      "kubernetes.labels.app",
+      "kubernetes.pod.name",
+      "httpRequest.remoteIp",
+      "agent.hostname",
+      "cloud.instance.id",
+      "cloud.region",
+      "cloud.availability_zone",
+      "logger",
+      "level",
+      "error.message",
+      "custom"
+    ];
     const TERM_FIELDS = new Set([
+      "@timestamp",
       "httpRequest.remoteIp",
       "kubernetes.namespace",
       "kubernetes.pod.name"
     ]);
+    const FULL_TEXT_FIELDS = new Set(["message", "exception", "error.message"]);
 
     let savedQueries = [];
     let pendingDeleteId = null;
 
     function $(id) {
       return document.getElementById(id);
+    }
+
+    function trimValue(value) {
+      return (value || "").trim();
+    }
+
+    function splitList(value) {
+      return trimValue(value)
+        .split(/[,\n;]/)
+        .map(function (part) {
+          return part.trim();
+        })
+        .filter(Boolean);
+    }
+
+    function uniqueValues(values) {
+      const seen = new Set();
+      return values.filter(function (value) {
+        const key = value.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
+    function addValueToListInput(inputId, value) {
+      const input = $(inputId);
+      const values = uniqueValues(splitList(input.value).concat(value));
+      input.value = values.join(", ");
+      input.focus();
+    }
+
+    function getNamespaceValue(tenantId) {
+      const trimmed = trimValue(tenantId);
+      if (!trimmed) return "";
+      if (trimmed.toLowerCase().startsWith("idaas-")) return trimmed;
+      return "idaas-" + trimmed;
+    }
+
+    function getEvidenceFields() {
+      const fields = $("includeEvidenceFieldsCheckbox").checked
+        ? splitList($("evidenceFieldsInput").value)
+        : [];
+      return fields.length ? fields : [];
     }
 
     function safeLoadSavedQueries() {
@@ -357,48 +554,140 @@
       }
     }
 
-    function trimValue(value) {
-      return (value || "").trim();
+    function escapeKqlValue(value, quote) {
+      const escaped = value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+      if (quote) return '"' + escaped + '"';
+      return escaped.replace(/([():<>*])/g, "\\$1");
     }
 
-    function splitList(value) {
-      return trimValue(value)
-        .split(/[,\n;]/)
-        .map(function (part) {
-          return part.trim();
-        })
-        .filter(Boolean);
+    function kqlComparableValue(value) {
+      if (/^now(?:[+-]\d+[smhdwMy])?(?:\/[smhdwMy])?$/.test(value)) return value;
+      if (/^-?\d+(?:\.\d+)?$/.test(value)) return value;
+      return escapeKqlValue(value, true);
     }
 
-    function addValueToListInput(inputId, value) {
-      const input = $(inputId);
-      const existing = splitList(input.value);
-      if (!existing.some(function (item) {
-        return item.toLowerCase() === value.toLowerCase();
-      })) {
-        existing.push(value);
+    function kqlWildcardValue(value) {
+      return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/([():<>])/g, "\\$1");
+    }
+
+    function quoteJsonString(value) {
+      return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+    }
+
+    function esqlField(field) {
+      return "`" + String(field).replace(/`/g, "``") + "`";
+    }
+
+    function esqlTimeSpan(value) {
+      const match = /^now-(\d+)([mhdw])$/.exec(value);
+      if (!match) return "";
+      const amount = match[1];
+      const unitMap = {
+        m: "minute",
+        h: "hour",
+        d: "day",
+        w: "week"
+      };
+      const unit = unitMap[match[2]];
+      return amount + " " + unit + (amount === "1" ? "" : "s");
+    }
+
+    function parseRangeValue(value) {
+      const trimmed = trimValue(value);
+      if (!trimmed) return null;
+      let parts = trimmed.split("..");
+      if (parts.length !== 2) parts = trimmed.split(/\s+to\s+/i);
+      if (parts.length !== 2) parts = trimmed.split(",");
+      if (parts.length !== 2) return null;
+      return {
+        gte: trimValue(parts[0]),
+        lte: trimValue(parts[1])
+      };
+    }
+
+    function jsonClause(rule) {
+      const field = rule.field;
+      const value = rule.value;
+      if (rule.operator === "exists") {
+        return { exists: { field: field } };
       }
-      input.value = existing.join(", ");
-      input.focus();
-    }
-
-    function getNamespaceValue(tenantId) {
-      const trimmed = trimValue(tenantId);
-      if (!trimmed) return "";
-      if (trimmed.toLowerCase().startsWith("idaas-")) return trimmed;
-      return "idaas-" + trimmed;
-    }
-
-    function exactClause(field, value) {
+      if (rule.operator === "contains") {
+        return { match: { [field]: value } };
+      }
+      if (rule.operator === "wildcard") {
+        return { wildcard: { [field]: { value: value } } };
+      }
+      if (rule.operator === "gte") {
+        return { range: { [field]: { gte: value } } };
+      }
+      if (rule.operator === "lte") {
+        return { range: { [field]: { lte: value } } };
+      }
+      if (rule.operator === "range") {
+        const range = parseRangeValue(value);
+        const rangeBody = {};
+        if (range && range.gte) rangeBody.gte = range.gte;
+        if (range && range.lte) rangeBody.lte = range.lte;
+        return { range: { [field]: rangeBody } };
+      }
       if (TERM_FIELDS.has(field)) {
         return { term: { [field]: value } };
       }
       return { match_phrase: { [field]: value } };
     }
 
-    function anyOfClauses(field, values) {
+    function kqlClause(rule) {
+      const field = rule.field;
+      const value = rule.value;
+      if (rule.operator === "exists") return field + ": *";
+      if (rule.operator === "contains") return field + ": " + escapeKqlValue(value, false);
+      if (rule.operator === "wildcard") return field + ": " + kqlWildcardValue(value);
+      if (rule.operator === "gte") return field + " >= " + kqlComparableValue(value);
+      if (rule.operator === "lte") return field + " <= " + kqlComparableValue(value);
+      if (rule.operator === "range") {
+        const range = parseRangeValue(value);
+        if (!range) return "";
+        const parts = [];
+        if (range.gte) parts.push(field + " >= " + kqlComparableValue(range.gte));
+        if (range.lte) parts.push(field + " <= " + kqlComparableValue(range.lte));
+        return parts.join(" AND ");
+      }
+      return field + ": " + escapeKqlValue(value, true);
+    }
+
+    function esqlClause(rule) {
+      const field = esqlField(rule.field);
+      const value = '"' + quoteJsonString(rule.value) + '"';
+      if (rule.operator === "exists") return field + " IS NOT NULL";
+      if (rule.field === "@timestamp" && rule.operator === "gte") {
+        const timeSpan = esqlTimeSpan(rule.value);
+        if (timeSpan) return "TRANGE(" + timeSpan + ")";
+      }
+      if (rule.field === "@timestamp" && rule.operator === "range") {
+        const range = parseRangeValue(rule.value);
+        if (range && range.gte && range.lte) return "TRANGE(" + range.gte + ", " + range.lte + ")";
+      }
+      if (rule.operator === "is" && FULL_TEXT_FIELDS.has(rule.field)) {
+        return field + " LIKE " + '"*' + quoteJsonString(rule.value) + '*"';
+      }
+      if (rule.operator === "contains") return field + " LIKE " + '"*' + quoteJsonString(rule.value) + '*"';
+      if (rule.operator === "wildcard") return field + " LIKE " + value;
+      if (rule.operator === "gte") return field + " >= " + value;
+      if (rule.operator === "lte") return field + " <= " + value;
+      if (rule.operator === "range") {
+        const range = parseRangeValue(rule.value);
+        if (!range) return "";
+        const parts = [];
+        if (range.gte) parts.push(field + " >= " + '"' + quoteJsonString(range.gte) + '"');
+        if (range.lte) parts.push(field + " <= " + '"' + quoteJsonString(range.lte) + '"');
+        return parts.join(" AND ");
+      }
+      return field + " == " + value;
+    }
+
+    function groupedJsonClause(field, values) {
       const clauses = values.map(function (value) {
-        return exactClause(field, value);
+        return jsonClause({ field: field, operator: "is", value: value });
       });
       if (clauses.length === 1) return clauses[0];
       return {
@@ -409,123 +698,206 @@
       };
     }
 
+    function groupedKqlClause(field, values) {
+      if (values.length === 1) return kqlClause({ field: field, operator: "is", value: values[0] });
+      return field + ": (" + values.map(function (value) {
+        return escapeKqlValue(value, true);
+      }).join(" OR ") + ")";
+    }
+
+    function groupedEsqlClause(field, values) {
+      if (values.length === 1) return esqlClause({ field: field, operator: "is", value: values[0] });
+      return "(" + values.map(function (value) {
+        return esqlClause({ field: field, operator: "is", value: value });
+      }).join(" OR ") + ")";
+    }
+
+    function validateRule(rule, errors, label) {
+      if (!rule.field) errors.push(label + " needs a field.");
+      if (rule.operator !== "exists" && !rule.value) errors.push(label + " needs a value.");
+      if (rule.operator === "range" && rule.value && !parseRangeValue(rule.value)) {
+        errors.push(label + " range must use start..end, start to end, or start,end.");
+      }
+    }
+
+    function addRule(rules, errors, rule, label) {
+      validateRule(rule, errors, label);
+      if (!errors.length || rule.field && (rule.operator === "exists" || rule.value)) {
+        rules.push(rule);
+      }
+    }
+
     function readCustomRules(errors) {
       const rules = [];
       document.querySelectorAll("[data-filter-rule]").forEach(function (row, index) {
         const mode = row.querySelector("[data-rule-mode]").value;
         const fieldSelect = row.querySelector("[data-rule-field]").value;
         const customField = trimValue(row.querySelector("[data-rule-custom-field]").value);
+        const operator = row.querySelector("[data-rule-operator]").value;
         const value = trimValue(row.querySelector("[data-rule-value]").value);
         const field = fieldSelect === "custom" ? customField : fieldSelect;
-
-        if (!value && !field) return;
-        if (!field) {
-          errors.push("Custom rule " + (index + 1) + " needs a field.");
-          return;
-        }
-        if (!value) {
-          errors.push("Custom rule " + (index + 1) + " needs a value.");
-          return;
-        }
-
-        rules.push({
-          mode: mode,
-          field: field,
-          value: value
-        });
+        if (!field && !value) return;
+        const rule = { mode: mode, field: field, operator: operator, value: value };
+        validateRule(rule, errors, "Custom rule " + (index + 1));
+        rules.push(rule);
       });
       return rules;
     }
 
-    function buildQueryClause() {
+    function getTimeRule(errors) {
+      const timeWindow = $("timeWindowSelect").value;
+      if (timeWindow === "picker") return null;
+      if (timeWindow === "custom") {
+        const start = trimValue($("customStartInput").value);
+        const end = trimValue($("customEndInput").value);
+        if (!start && !end) {
+          errors.push("Custom time range needs a start time, end time, or both.");
+          return null;
+        }
+        return {
+          mode: "include",
+          field: "@timestamp",
+          operator: "range",
+          value: start + ".." + end
+        };
+      }
+      return {
+        mode: "include",
+        field: "@timestamp",
+        operator: "gte",
+        value: "now-" + timeWindow
+      };
+    }
+
+    function collectRules() {
       const errors = [];
+      const rules = [];
+
+      const namespace = getNamespaceValue($("tenantIdInput").value);
+      const includeCustomers = uniqueValues(splitList($("includeCustomersInput").value));
+      const excludeCustomers = uniqueValues(splitList($("excludeCustomersInput").value));
+
+      if (namespace) rules.push({ mode: "include", field: "kubernetes.namespace", operator: "is", value: namespace });
+      if (includeCustomers.length) rules.push({ mode: "include", field: "fields.customer", operator: "any", values: includeCustomers });
+      if (excludeCustomers.length) rules.push({ mode: "exclude", field: "fields.customer", operator: "any", values: excludeCustomers });
+
+      [
+        ["environmentInput", "fields.environment", "Environment"],
+        ["messageTextInput", "message", "Message phrase"],
+        ["exceptionTextInput", "exception", "Exception phrase"],
+        ["jobIdInput", "clusteredJob_id", "Job ID or name"],
+        ["podNameInput", "kubernetes.pod.name", "Pod name"],
+        ["ingressIpInput", "httpRequest.remoteIp", "Ingress remote IP"],
+        ["applicationInput", "fields.application", "Application"],
+        ["riRoleInput", "fields.ri_role", "RI role"],
+        ["hostInput", "agent.hostname", "Hostname"]
+      ].forEach(function (entry) {
+        const value = trimValue($(entry[0]).value);
+        if (value) rules.push({ mode: "include", field: entry[1], operator: "is", value: value });
+      });
+
+      const timeRule = getTimeRule(errors);
+      if (timeRule) rules.push(timeRule);
+      readCustomRules(errors).forEach(function (rule) {
+        rules.push(rule);
+      });
+
+      return { rules: rules, errors: errors };
+    }
+
+    function buildJsonQuery(rules) {
       const filter = [];
       const must = [];
       const mustNot = [];
 
-      const tenantId = trimValue($("tenantIdInput").value);
-      const namespace = getNamespaceValue(tenantId);
-      const includeCustomers = splitList($("includeCustomersInput").value);
-      const excludeCustomers = splitList($("excludeCustomersInput").value);
-      const messageText = trimValue($("messageTextInput").value);
-      const jobId = trimValue($("jobIdInput").value);
-      const podName = trimValue($("podNameInput").value);
-      const ingressIp = trimValue($("ingressIpInput").value);
+      rules.forEach(function (rule) {
+        let clause;
+        if (rule.operator === "any") {
+          clause = groupedJsonClause(rule.field, rule.values);
+        } else {
+          clause = jsonClause(rule);
+        }
 
-      if (namespace) {
-        filter.push(exactClause("kubernetes.namespace", namespace));
-      }
-
-      if (includeCustomers.length) {
-        filter.push(anyOfClauses("fields.customer", includeCustomers));
-      }
-
-      if (excludeCustomers.length) {
-        mustNot.push(anyOfClauses("fields.customer", excludeCustomers));
-      }
-
-      if (messageText) {
-        must.push(exactClause("message", messageText));
-      }
-
-      if (jobId) {
-        filter.push(exactClause("clusteredJob_id", jobId));
-      }
-
-      if (podName) {
-        filter.push(exactClause("kubernetes.pod.name", podName));
-      }
-
-      if (ingressIp) {
-        filter.push(exactClause("httpRequest.remoteIp", ingressIp));
-      }
-
-      readCustomRules(errors).forEach(function (rule) {
-        const clause = exactClause(rule.field, rule.value);
         if (rule.mode === "exclude") {
           mustNot.push(clause);
+        } else if (FULL_TEXT_FIELDS.has(rule.field) || rule.operator === "contains") {
+          must.push(clause);
         } else {
           filter.push(clause);
         }
       });
 
-      if (errors.length) {
-        return { query: null, errors: errors };
-      }
-
       if (!filter.length && !must.length && !mustNot.length) {
-        return {
-          query: { match_all: {} },
-          errors: []
-        };
+        return { match_all: {} };
       }
 
       const bool = {};
       if (filter.length) bool.filter = filter;
       if (must.length) bool.must = must;
       if (mustNot.length) bool.must_not = mustNot;
-
-      return {
-        query: { bool: bool },
-        errors: []
-      };
+      return { bool: bool };
     }
 
-    function buildQueryJson() {
-      const result = buildQueryClause();
-      if (result.errors.length) {
-        return result;
+    function buildKqlQuery(rules) {
+      const parts = [];
+      rules.forEach(function (rule) {
+        const clause = rule.operator === "any"
+          ? groupedKqlClause(rule.field, rule.values)
+          : kqlClause(rule);
+        if (!clause) return;
+        parts.push(rule.mode === "exclude" ? "NOT (" + clause + ")" : "(" + clause + ")");
+      });
+      return parts.length ? parts.join(" AND ") : "*";
+    }
+
+    function buildEsqlQuery(rules) {
+      const indexPattern = trimValue($("indexPatternInput").value) || "filebeat-*";
+      const lines = ["FROM " + indexPattern];
+      const whereParts = [];
+      rules.forEach(function (rule) {
+        const clause = rule.operator === "any"
+          ? groupedEsqlClause(rule.field, rule.values)
+          : esqlClause(rule);
+        if (!clause) return;
+        whereParts.push(rule.mode === "exclude" ? "NOT (" + clause + ")" : "(" + clause + ")");
+      });
+      if (whereParts.length) lines.push("| WHERE " + whereParts.join(" AND "));
+      lines.push("| SORT `@timestamp` DESC");
+      const fields = getEvidenceFields();
+      if (fields.length) {
+        lines.push("| KEEP " + fields.map(esqlField).join(", "));
+      }
+      return lines.join("\n");
+    }
+
+    function buildOutput() {
+      const collected = collectRules();
+      if (collected.errors.length) return { output: "", errors: collected.errors };
+      const rules = collected.rules;
+      const format = $("outputFormatSelect").value;
+
+      if (format === "kql") {
+        return { output: buildKqlQuery(rules), errors: [] };
       }
 
-      const outputFormat = $("outputFormatSelect").value;
-      const output = outputFormat === "body"
-        ? { query: result.query }
-        : result.query;
+      if (format === "esql") {
+        return { output: buildEsqlQuery(rules), errors: [] };
+      }
 
-      return {
-        query: output,
-        errors: []
-      };
+      const query = buildJsonQuery(rules);
+      if (format === "body") {
+        const body = {
+          query: query,
+          sort: [
+            { "@timestamp": { order: "desc" } }
+          ]
+        };
+        const fields = getEvidenceFields();
+        if (fields.length) body._source = fields;
+        return { output: JSON.stringify(body, null, 2), errors: [] };
+      }
+
+      return { output: JSON.stringify(query, null, 2), errors: [] };
     }
 
     function setStatus(message, isError) {
@@ -538,6 +910,94 @@
       } else {
         el.className = "min-h-6 text-sm font-medium text-emerald-700";
       }
+    }
+
+    function buildIntoOutput(successMessage) {
+      const result = buildOutput();
+      if (result.errors.length) {
+        setStatus(result.errors.join(" "), true);
+        return null;
+      }
+      $("queryOutput").value = result.output;
+      setStatus(successMessage, false);
+      return result.output;
+    }
+
+    function collectState() {
+      const inputIds = [
+        "queryNameInput",
+        "outputFormatSelect",
+        "indexPatternInput",
+        "tenantIdInput",
+        "includeCustomersInput",
+        "excludeCustomersInput",
+        "environmentInput",
+        "messageTextInput",
+        "exceptionTextInput",
+        "jobIdInput",
+        "podNameInput",
+        "ingressIpInput",
+        "applicationInput",
+        "riRoleInput",
+        "hostInput",
+        "timeWindowSelect",
+        "customStartInput",
+        "customEndInput",
+        "evidenceFieldsInput"
+      ];
+      const values = {};
+      inputIds.forEach(function (id) {
+        values[id] = $(id).value;
+      });
+      values.includeEvidenceFieldsCheckbox = $("includeEvidenceFieldsCheckbox").checked;
+      values.rules = Array.from(document.querySelectorAll("[data-filter-rule]")).map(function (row) {
+        return {
+          mode: row.querySelector("[data-rule-mode]").value,
+          field: row.querySelector("[data-rule-field]").value,
+          customField: row.querySelector("[data-rule-custom-field]").value,
+          operator: row.querySelector("[data-rule-operator]").value,
+          value: row.querySelector("[data-rule-value]").value
+        };
+      });
+      return values;
+    }
+
+    function applyState(state) {
+      if (!state) return;
+      Object.keys(state).forEach(function (key) {
+        const el = $(key);
+        if (!el || key === "rules") return;
+        if (el.type === "checkbox") {
+          el.checked = Boolean(state[key]);
+        } else {
+          el.value = state[key];
+        }
+      });
+      $("filterRulesList").innerHTML = "";
+      (state.rules || []).forEach(function (rule) {
+        createFilterRule(rule.mode, rule);
+      });
+    }
+
+    function resetForm() {
+      const preserveIndex = $("indexPatternInput").value || "filebeat-*";
+      document.querySelectorAll("input, textarea, select").forEach(function (el) {
+        if (el.id === "outputFormatSelect") {
+          el.value = "kql";
+        } else if (el.id === "indexPatternInput") {
+          el.value = preserveIndex;
+        } else if (el.id === "timeWindowSelect") {
+          el.value = "picker";
+        } else if (el.id === "evidenceFieldsInput") {
+          el.value = DEFAULT_EVIDENCE_FIELDS.join("\n");
+        } else if (el.id === "includeEvidenceFieldsCheckbox") {
+          el.checked = true;
+        } else if (el.type !== "checkbox") {
+          el.value = "";
+        }
+      });
+      $("filterRulesList").innerHTML = "";
+      buildIntoOutput("Reset fields.");
     }
 
     function renderSavedQueries() {
@@ -564,6 +1024,7 @@
           left.className = "min-w-0 flex-1 truncate rounded px-1 py-1 text-left text-sm text-slate-800";
           left.textContent = q.name;
           left.addEventListener("click", function () {
+            if (q.state) applyState(q.state);
             $("queryNameInput").value = q.name;
             $("queryOutput").value = q.query;
             $("savedQueriesMenu").classList.add("hidden");
@@ -627,45 +1088,63 @@
       }
     }
 
-    function createFilterRule(mode) {
+    function populateFieldSelect(select, selectedValue) {
+      select.innerHTML = "";
+      FIELD_OPTIONS.forEach(function (field) {
+        const option = document.createElement("option");
+        option.value = field;
+        option.textContent = field === "custom" ? "Custom field" : field;
+        select.appendChild(option);
+      });
+      select.value = selectedValue || "fields.customer";
+    }
+
+    function createFilterRule(mode, existing) {
       const template = $("filterRuleTemplate");
       const fragment = template.content.cloneNode(true);
       const row = fragment.querySelector("[data-filter-rule]");
       const modeSelect = row.querySelector("[data-rule-mode]");
       const fieldSelect = row.querySelector("[data-rule-field]");
       const customField = row.querySelector("[data-rule-custom-field]");
+      const operatorSelect = row.querySelector("[data-rule-operator]");
+      const valueInput = row.querySelector("[data-rule-value]");
 
-      modeSelect.value = mode || "include";
+      modeSelect.value = existing ? existing.mode : (mode || "include");
+      populateFieldSelect(fieldSelect, existing ? existing.field : "fields.customer");
+      customField.value = existing ? existing.customField || "" : "";
+      operatorSelect.value = existing ? existing.operator || "is" : "is";
+      valueInput.value = existing ? existing.value || "" : "";
 
-      fieldSelect.addEventListener("change", function () {
+      function syncCustomField() {
         if (fieldSelect.value === "custom") {
           customField.classList.remove("hidden");
-          customField.focus();
         } else {
           customField.classList.add("hidden");
           customField.value = "";
         }
-      });
+      }
 
+      function syncOperator() {
+        if (operatorSelect.value === "exists") {
+          valueInput.disabled = true;
+          valueInput.value = "";
+          valueInput.classList.add("bg-slate-100");
+        } else {
+          valueInput.disabled = false;
+          valueInput.classList.remove("bg-slate-100");
+        }
+      }
+
+      fieldSelect.addEventListener("change", syncCustomField);
+      operatorSelect.addEventListener("change", syncOperator);
       row.querySelector("[data-remove-rule]").addEventListener("click", function () {
         row.remove();
       });
 
       $("filterRulesList").appendChild(fragment);
-      row.querySelector("[data-rule-value]").focus();
-    }
-
-    function buildIntoOutput(successMessage) {
-      const result = buildQueryJson();
-      if (result.errors.length) {
-        setStatus(result.errors.join(" "), true);
-        return null;
-      }
-
-      const json = JSON.stringify(result.query, null, 2);
-      $("queryOutput").value = json;
-      setStatus(successMessage, false);
-      return json;
+      syncCustomField();
+      syncOperator();
+      if (!existing) valueInput.focus();
     }
 
     function saveCurrentQuery() {
@@ -677,66 +1156,74 @@
         return;
       }
 
-      const json = buildIntoOutput("Saved query: " + name + ".");
-      if (!json) return;
+      const output = buildIntoOutput("Saved query: " + name + ".");
+      if (!output) return;
 
-      const id = Date.now().toString() + "-" + Math.random().toString(16).slice(2);
-      savedQueries.push({
-        id: id,
-        name: name,
-        query: json
+      const existingIndex = savedQueries.findIndex(function (q) {
+        return q.name.toLowerCase() === name.toLowerCase();
       });
+      const entry = {
+        id: existingIndex >= 0 ? savedQueries[existingIndex].id : Date.now().toString() + "-" + Math.random().toString(16).slice(2),
+        name: name,
+        query: output,
+        state: collectState()
+      };
+      if (existingIndex >= 0) {
+        savedQueries[existingIndex] = entry;
+      } else {
+        savedQueries.push(entry);
+      }
       persistSavedQueries();
       renderSavedQueries();
     }
 
-    async function copyQueryOutput() {
-      const output = $("queryOutput");
-      const json = buildIntoOutput("Built query and copied it.");
-      if (!json) return;
-
+    async function copyText(text, successMessage) {
       try {
-        await navigator.clipboard.writeText(output.value);
-        setStatus("Copied generated query.", false);
+        await navigator.clipboard.writeText(text);
+        setStatus(successMessage, false);
       } catch (e) {
-        output.focus();
-        output.select();
-        setStatus("Select and copy the generated query from the text area.", true);
+        setStatus("Clipboard blocked. Select the generated text and copy it manually.", true);
       }
+    }
+
+    async function copyQueryOutput() {
+      const output = buildIntoOutput("Built query and copied it.");
+      if (!output) return;
+      await copyText(output, "Copied generated output.");
+    }
+
+    async function copyEvidenceFields() {
+      const fields = getEvidenceFields();
+      const text = fields.length ? fields.join("\n") : DEFAULT_EVIDENCE_FIELDS.join("\n");
+      await copyText(text, "Copied evidence columns.");
     }
 
     function setupEventHandlers() {
       $("createQueryButton").addEventListener("click", saveCurrentQuery);
-
       $("justBuildButton").addEventListener("click", function () {
-        buildIntoOutput("Built query.");
+        buildIntoOutput("Built output.");
       });
-
       $("copyQueryButton").addEventListener("click", copyQueryOutput);
-
+      $("copyEvidenceButton").addEventListener("click", copyEvidenceFields);
+      $("resetButton").addEventListener("click", resetForm);
       $("savedQueriesToggle").addEventListener("click", toggleSavedQueriesMenu);
-
       $("addIncludeRuleButton").addEventListener("click", function () {
         createFilterRule("include");
       });
-
       $("addExcludeRuleButton").addEventListener("click", function () {
         createFilterRule("exclude");
       });
 
-      document.querySelectorAll("[data-add-customer]").forEach(function (button) {
+      document.querySelectorAll("[data-add-value]").forEach(function (button) {
         button.addEventListener("click", function () {
-          addValueToListInput(button.dataset.addCustomer, button.dataset.customerValue);
+          addValueToListInput(button.dataset.addValue, button.dataset.value);
         });
       });
 
       $("confirmCancel").addEventListener("click", closeConfirmDialog);
       $("confirmOk").addEventListener("click", deletePendingQuery);
-
       $("confirmDialog").addEventListener("click", function (event) {
-        if (event.target === $("confirmDialog")) {
-          closeConfirmDialog();
-        }
+        if (event.target === $("confirmDialog")) closeConfirmDialog();
       });
 
       document.addEventListener("click", function (event) {
