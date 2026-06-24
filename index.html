@@ -190,50 +190,6 @@
             </datalist>
           </fieldset>
 
-          <fieldset class="space-y-4">
-            <legend class="text-sm font-semibold text-slate-950">
-              Time
-            </legend>
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div class="space-y-1">
-                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="timeWindowSelect" tabindex="0">
-                  Time filter
-                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Kibana's time picker is usually best. Add a query time filter when you need the time range preserved in copied output.
-                  </span>
-                </label>
-                <select id="timeWindowSelect" class="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100">
-                  <option value="picker">Use Kibana time picker</option>
-                  <option value="15m">Last 15 minutes</option>
-                  <option value="1h">Last 1 hour</option>
-                  <option value="24h">Last 24 hours</option>
-                  <option value="7d">Last 7 days</option>
-                  <option value="custom">Custom range</option>
-                </select>
-              </div>
-
-              <div class="space-y-1">
-                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="customStartInput" tabindex="0">
-                  Start time
-                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Used only when Time filter is Custom range.
-                  </span>
-                </label>
-                <input id="customStartInput" type="datetime-local" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
-              </div>
-
-              <div class="space-y-1">
-                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="customEndInput" tabindex="0">
-                  End time
-                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Leave blank for now when using a custom start.
-                  </span>
-                </label>
-                <input id="customEndInput" type="datetime-local" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
-              </div>
-            </div>
-          </fieldset>
-
           <fieldset class="space-y-3">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <legend class="text-sm font-semibold text-slate-950">
@@ -761,31 +717,6 @@
       return rules;
     }
 
-    function getTimeRule(errors) {
-      const timeWindow = $("timeWindowSelect").value;
-      if (timeWindow === "picker") return null;
-      if (timeWindow === "custom") {
-        const start = trimValue($("customStartInput").value);
-        const end = trimValue($("customEndInput").value);
-        if (!start && !end) {
-          errors.push("Custom time range needs a start time, end time, or both.");
-          return null;
-        }
-        return {
-          mode: "include",
-          field: "@timestamp",
-          operator: "range",
-          value: start + ".." + end
-        };
-      }
-      return {
-        mode: "include",
-        field: "@timestamp",
-        operator: "gte",
-        value: "now-" + timeWindow
-      };
-    }
-
     function collectRules() {
       const errors = [];
       const rules = [];
@@ -828,8 +759,6 @@
       }
       if (trimValue($("threadInput").value)) rules.push({ mode: "include", field: "thread", operator: "is", value: trimValue($("threadInput").value) });
 
-      const timeRule = getTimeRule(errors);
-      if (timeRule) rules.push(timeRule);
       readCustomRules(errors).forEach(function (rule) {
         rules.push(rule);
       });
@@ -907,10 +836,7 @@
         "messageTextInput",
         "requestUriInput",
         "clientIpInput",
-        "threadInput",
-        "timeWindowSelect",
-        "customStartInput",
-        "customEndInput"
+        "threadInput"
       ];
       const values = {};
       inputIds.forEach(function (id) {
@@ -969,9 +895,7 @@
 
     function resetForm() {
       document.querySelectorAll("input, textarea, select").forEach(function (el) {
-        if (el.id === "timeWindowSelect") {
-          el.value = "picker";
-        } else if (el.id === "fieldCatalogInput") {
+        if (el.id === "fieldCatalogInput") {
           el.value = importedFieldOptions.join("\n");
         } else if (el.type !== "checkbox") {
           el.value = "";
