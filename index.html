@@ -99,28 +99,20 @@
                 <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="includeCustomersInput" tabindex="0">
                   Include customers
                   <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds fields.customer filters. Separate multiple values with commas, semicolons, or new lines.
+                    Adds fields.customer filters. Try cps or ncdpi, and separate multiple values with commas, semicolons, or new lines.
                   </span>
                 </label>
                 <input id="includeCustomersInput" type="text" list="knownCustomers" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
-                <div class="flex flex-wrap gap-2">
-                  <button type="button" data-add-value="includeCustomersInput" data-value="cps" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700">CPS</button>
-                  <button type="button" data-add-value="includeCustomersInput" data-value="ncdpi" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-700">NCDPI</button>
-                </div>
               </div>
 
               <div class="space-y-1">
                 <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="excludeCustomersInput" tabindex="0">
                   Exclude customers
                   <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds negated fields.customer filters, useful when broad searches need known customers removed.
+                    Adds negated fields.customer filters. Try cps or ncdpi when broad searches need known customers removed.
                   </span>
                 </label>
                 <input id="excludeCustomersInput" type="text" list="knownCustomers" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
-                <div class="flex flex-wrap gap-2">
-                  <button type="button" data-add-value="excludeCustomersInput" data-value="cps" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">CPS</button>
-                  <button type="button" data-add-value="excludeCustomersInput" data-value="ncdpi" class="rounded-md border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700">NCDPI</button>
-                </div>
               </div>
 
               <div class="space-y-1">
@@ -181,16 +173,6 @@
               </div>
 
               <div class="space-y-1">
-                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="podNameInput" tabindex="0">
-                  Pod name
-                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds kubernetes.pod.name.
-                  </span>
-                </label>
-                <input id="podNameInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
-              </div>
-
-              <div class="space-y-1">
                 <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="ingressIpInput" tabindex="0">
                   Ingress remote IP
                   <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
@@ -198,36 +180,6 @@
                   </span>
                 </label>
                 <input id="ingressIpInput" type="text" inputmode="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
-              </div>
-
-              <div class="space-y-1">
-                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="applicationInput" tabindex="0">
-                  Application
-                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds fields.application when available.
-                  </span>
-                </label>
-                <input id="applicationInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
-              </div>
-
-              <div class="space-y-1">
-                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="riRoleInput" tabindex="0">
-                  RI role
-                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds fields.ri_role when available.
-                  </span>
-                </label>
-                <input id="riRoleInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
-              </div>
-
-              <div class="space-y-1">
-                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="hostInput" tabindex="0">
-                  Hostname
-                  <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Adds agent.hostname to pin logs to a specific appliance, host, or node.
-                  </span>
-                </label>
-                <input id="hostInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
             </div>
           </fieldset>
@@ -306,7 +258,7 @@ fields.ri_role</textarea>
           <fieldset class="space-y-3">
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <legend class="text-sm font-semibold text-slate-950">
-                Custom Field Rules
+                Additional Field Filters
               </legend>
               <div class="flex flex-wrap gap-2">
                 <button id="addIncludeRuleButton" type="button" class="inline-flex items-center gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-sm font-medium text-sky-700 hover:bg-sky-100">
@@ -321,6 +273,29 @@ fields.ri_role</textarea>
             </div>
 
             <div id="filterRulesList" class="space-y-3"></div>
+
+            <details class="rounded-md border border-slate-200 bg-slate-50 p-3">
+              <summary class="cursor-pointer text-sm font-medium text-slate-700">
+                Field catalog
+              </summary>
+              <div class="mt-3 space-y-3">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="fieldCatalogInput" tabindex="0">
+                  Paste field names
+                  <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Paste field names copied from Kibana. Imported names are added to the field dropdowns and saved in this browser.
+                  </span>
+                </label>
+                <textarea id="fieldCatalogInput" class="h-24 w-full rounded-md border border-slate-300 bg-white px-3 py-2 font-mono text-xs leading-5 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" spellcheck="false"></textarea>
+                <div class="flex flex-wrap gap-2">
+                  <button id="importFieldsButton" type="button" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                    Import fields
+                  </button>
+                  <button id="clearImportedFieldsButton" type="button" class="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">
+                    Clear imported
+                  </button>
+                </div>
+              </div>
+            </details>
           </fieldset>
         </div>
 
@@ -440,6 +415,7 @@ fields.ri_role</textarea>
 
   <script>
     const STORAGE_KEY = "riKibanaQueries";
+    const FIELD_STORAGE_KEY = "riKibanaFieldCatalog";
     const DEFAULT_EVIDENCE_FIELDS = [
       "@timestamp",
       "message",
@@ -453,7 +429,7 @@ fields.ri_role</textarea>
       "fields.application",
       "fields.ri_role"
     ];
-    const FIELD_OPTIONS = [
+    const BASE_FIELD_OPTIONS = [
       "@timestamp",
       "message",
       "exception",
@@ -486,6 +462,8 @@ fields.ri_role</textarea>
 
     let savedQueries = [];
     let pendingDeleteId = null;
+    let importedFieldOptions = [];
+    let fieldOptions = BASE_FIELD_OPTIONS.slice();
 
     function $(id) {
       return document.getElementById(id);
@@ -514,11 +492,86 @@ fields.ri_role</textarea>
       });
     }
 
-    function addValueToListInput(inputId, value) {
-      const input = $(inputId);
-      const values = uniqueValues(splitList(input.value).concat(value));
-      input.value = values.join(", ");
-      input.focus();
+    function normalizeFieldName(value) {
+      const field = trimValue(value).replace(/^["'`]+|["'`]+$/g, "");
+      if (!field) return "";
+      if (field === "custom") return "";
+      if (field.length > 160) return "";
+      if (!/^[A-Za-z_@][A-Za-z0-9_.:-]*$/.test(field)) return "";
+      if (/^(Field|Value|Operator|Select|Include|Exclude)$/i.test(field)) return "";
+      return field;
+    }
+
+    function normalizeFieldList(values) {
+      return uniqueValues(values.map(normalizeFieldName).filter(Boolean))
+        .sort(function (a, b) {
+          return a.localeCompare(b);
+        });
+    }
+
+    function extractFieldNames(text) {
+      return normalizeFieldList(trimValue(text).split(/[\r\n,\t]+/));
+    }
+
+    function safeLoadFieldCatalog() {
+      try {
+        const raw = window.localStorage.getItem(FIELD_STORAGE_KEY);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+        return normalizeFieldList(parsed);
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function persistFieldCatalog() {
+      try {
+        window.localStorage.setItem(FIELD_STORAGE_KEY, JSON.stringify(importedFieldOptions));
+      } catch (e) {
+      }
+    }
+
+    function rebuildFieldOptions() {
+      const baseWithoutCustom = BASE_FIELD_OPTIONS.filter(function (field) {
+        return field !== "custom";
+      });
+      const imported = importedFieldOptions.filter(function (field) {
+        return !baseWithoutCustom.some(function (baseField) {
+          return baseField.toLowerCase() === field.toLowerCase();
+        });
+      });
+      fieldOptions = uniqueValues(baseWithoutCustom.concat(imported)).concat("custom");
+    }
+
+    function refreshFieldSelects() {
+      document.querySelectorAll("[data-rule-field]").forEach(function (select) {
+        populateFieldSelect(select, select.value);
+      });
+    }
+
+    function renderFieldCatalogInput() {
+      const input = $("fieldCatalogInput");
+      if (input) input.value = importedFieldOptions.join("\n");
+    }
+
+    function importFieldCatalog() {
+      const fields = extractFieldNames($("fieldCatalogInput").value);
+      importedFieldOptions = normalizeFieldList(importedFieldOptions.concat(fields));
+      rebuildFieldOptions();
+      persistFieldCatalog();
+      renderFieldCatalogInput();
+      refreshFieldSelects();
+      setStatus("Imported " + fields.length + " field name" + (fields.length === 1 ? "." : "s."), false);
+    }
+
+    function clearImportedFields() {
+      importedFieldOptions = [];
+      rebuildFieldOptions();
+      persistFieldCatalog();
+      renderFieldCatalogInput();
+      refreshFieldSelects();
+      setStatus("Cleared imported fields.", false);
     }
 
     function getNamespaceValue(tenantId) {
@@ -786,13 +839,10 @@ fields.ri_role</textarea>
         ["messageTextInput", "message", "Message phrase"],
         ["exceptionTextInput", "exception", "Exception phrase"],
         ["jobIdInput", "clusteredJob_id", "Job ID or name"],
-        ["podNameInput", "kubernetes.pod.name", "Pod name"],
-        ["ingressIpInput", "httpRequest.remoteIp", "Ingress remote IP"],
-        ["applicationInput", "fields.application", "Application"],
-        ["riRoleInput", "fields.ri_role", "RI role"],
-        ["hostInput", "agent.hostname", "Hostname"]
+        ["ingressIpInput", "httpRequest.remoteIp", "Ingress remote IP"]
       ].forEach(function (entry) {
-        const value = trimValue($(entry[0]).value);
+        const el = $(entry[0]);
+        const value = el ? trimValue(el.value) : "";
         if (value) rules.push({ mode: "include", field: entry[1], operator: "is", value: value });
       });
 
@@ -935,11 +985,7 @@ fields.ri_role</textarea>
         "messageTextInput",
         "exceptionTextInput",
         "jobIdInput",
-        "podNameInput",
         "ingressIpInput",
-        "applicationInput",
-        "riRoleInput",
-        "hostInput",
         "timeWindowSelect",
         "customStartInput",
         "customEndInput",
@@ -974,7 +1020,25 @@ fields.ri_role</textarea>
         }
       });
       $("filterRulesList").innerHTML = "";
-      (state.rules || []).forEach(function (rule) {
+      const migratedRules = (state.rules || []).slice();
+      [
+        ["podNameInput", "kubernetes.pod.name"],
+        ["applicationInput", "fields.application"],
+        ["riRoleInput", "fields.ri_role"],
+        ["hostInput", "agent.hostname"]
+      ].forEach(function (entry) {
+        const value = trimValue(state[entry[0]]);
+        if (value) {
+          migratedRules.push({
+            mode: "include",
+            field: entry[1],
+            customField: "",
+            operator: "is",
+            value: value
+          });
+        }
+      });
+      migratedRules.forEach(function (rule) {
         createFilterRule(rule.mode, rule);
       });
     }
@@ -990,6 +1054,8 @@ fields.ri_role</textarea>
           el.value = "picker";
         } else if (el.id === "evidenceFieldsInput") {
           el.value = DEFAULT_EVIDENCE_FIELDS.join("\n");
+        } else if (el.id === "fieldCatalogInput") {
+          el.value = importedFieldOptions.join("\n");
         } else if (el.id === "includeEvidenceFieldsCheckbox") {
           el.checked = true;
         } else if (el.type !== "checkbox") {
@@ -1089,8 +1155,14 @@ fields.ri_role</textarea>
     }
 
     function populateFieldSelect(select, selectedValue) {
+      const options = fieldOptions.slice();
+      if (selectedValue && selectedValue !== "custom" && !options.some(function (field) {
+        return field.toLowerCase() === selectedValue.toLowerCase();
+      })) {
+        options.splice(Math.max(options.length - 1, 0), 0, selectedValue);
+      }
       select.innerHTML = "";
-      FIELD_OPTIONS.forEach(function (field) {
+      options.forEach(function (field) {
         const option = document.createElement("option");
         option.value = field;
         option.textContent = field === "custom" ? "Custom field" : field;
@@ -1207,17 +1279,13 @@ fields.ri_role</textarea>
       $("copyEvidenceButton").addEventListener("click", copyEvidenceFields);
       $("resetButton").addEventListener("click", resetForm);
       $("savedQueriesToggle").addEventListener("click", toggleSavedQueriesMenu);
+      $("importFieldsButton").addEventListener("click", importFieldCatalog);
+      $("clearImportedFieldsButton").addEventListener("click", clearImportedFields);
       $("addIncludeRuleButton").addEventListener("click", function () {
         createFilterRule("include");
       });
       $("addExcludeRuleButton").addEventListener("click", function () {
         createFilterRule("exclude");
-      });
-
-      document.querySelectorAll("[data-add-value]").forEach(function (button) {
-        button.addEventListener("click", function () {
-          addValueToListInput(button.dataset.addValue, button.dataset.value);
-        });
       });
 
       $("confirmCancel").addEventListener("click", closeConfirmDialog);
@@ -1237,6 +1305,9 @@ fields.ri_role</textarea>
 
     document.addEventListener("DOMContentLoaded", function () {
       savedQueries = safeLoadSavedQueries();
+      importedFieldOptions = safeLoadFieldCatalog();
+      rebuildFieldOptions();
+      renderFieldCatalogInput();
       renderSavedQueries();
       setupEventHandlers();
       buildIntoOutput("Ready.");
