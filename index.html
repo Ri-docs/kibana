@@ -101,21 +101,31 @@
               Debugger / Log Search
             </legend>
             <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <div class="space-y-1">
+              <div class="space-y-1 lg:col-span-2">
                 <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="loggerInput" tabindex="0">
-                  Logger / debugger
+                  Debug loggers
                   <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Searches logger with wildcards, useful after enabling a library debugger such as smb.
+                    Searches logger for one or more enabled debug loggers. Separate multiple logger names with commas, semicolons, or new lines.
                   </span>
                 </label>
-                <input id="loggerInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
+                <textarea id="loggerInput" class="h-20 w-full rounded-md border border-slate-300 px-3 py-2 font-mono text-xs leading-5 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" spellcheck="false" placeholder="net.idauto.idp.authn.kerberos.KerberosContextAcceptor&#10;net.idauto.idp.rest.IdpAuthenticationRestService"></textarea>
+              </div>
+
+              <div class="space-y-1">
+                <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="debugSessionIdInput" tabindex="0">
+                  Debug Session ID
+                  <span class="tooltip-panel pointer-events-none absolute right-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
+                    Searches debug_sessionId and the matching debug-session-id text inside message.
+                  </span>
+                </label>
+                <input id="debugSessionIdInput" type="text" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
               </div>
 
               <div class="space-y-1">
                 <label class="help-label relative inline-flex w-fit cursor-help text-sm font-medium text-slate-700" for="levelInput" tabindex="0">
                   Log level
                   <span class="tooltip-panel pointer-events-none absolute left-0 top-6 z-30 rounded-md border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-lg">
-                    Searches level. Debuggers usually create DEBUG or TRACE records.
+                    Searches Log_Level and level. Debuggers usually create DEBUG or TRACE records.
                   </span>
                 </label>
                 <input id="levelInput" type="text" list="logLevelValues" class="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100" />
@@ -390,6 +400,8 @@
       "kubernetes.pod.name",
       "logger",
       "level",
+      "Log_Level",
+      "debug_sessionId",
       "message",
       "_id",
       "_index",
@@ -592,6 +604,10 @@
       return "*" + trimmed + "*";
     }
 
+    function wildcardSearchValues(value) {
+      return uniqueValues(splitList(value).map(wildcardSearchValue).filter(Boolean));
+    }
+
     function safeLoadSavedQueries() {
       try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -694,6 +710,25 @@
       return null;
     }
 
+    function anyRule(rules) {
+      const presentRules = rules.filter(Boolean);
+      if (presentRules.length === 1) return presentRules[0];
+      if (presentRules.length > 1) return { mode: "include", operator: "scopeAny", rules: presentRules };
+      return null;
+    }
+
+    function fieldValueRule(field, operator, value) {
+      const trimmed = trimValue(value);
+      if (!trimmed) return null;
+      return { mode: "include", field: field, operator: operator, value: trimmed };
+    }
+
+    function multiValueRule(field, operator, values) {
+      return anyRule(values.map(function (value) {
+        return fieldValueRule(field, operator, value);
+      }));
+    }
+
     function validateRule(rule, errors, label) {
       if (!rule.field) errors.push(label + " needs a field.");
       if (rule.operator !== "exists" && !rule.value) errors.push(label + " needs a value.");
@@ -763,24 +798,33 @@
       if (scope) rules.push(scope);
       if (excludeCustomers.length) rules.push({ mode: "exclude", field: "fields.customer", operator: "any", values: excludeCustomers });
 
-      const loggerValue = wildcardSearchValue($("loggerInput").value);
+      const loggerValues = wildcardSearchValues($("loggerInput").value);
+      const debugSessionId = trimValue($("debugSessionIdInput").value);
+      const levelValue = trimValue($("levelInput").value);
       const requestUriValue = wildcardSearchValue($("requestUriInput").value);
       const clientIp = trimValue($("clientIpInput").value);
+      const loggerRule = multiValueRule("logger", "wildcard", loggerValues);
+      const levelRule = anyRule([
+        fieldValueRule("Log_Level", "is", levelValue),
+        fieldValueRule("level", "is", levelValue)
+      ]);
+      const debugSessionRule = anyRule([
+        fieldValueRule("debug_sessionId", "is", debugSessionId),
+        fieldValueRule("message", "is", debugSessionId),
+        fieldValueRule("message", "wildcard", debugSessionId ? "*debug-session-id=" + debugSessionId + "*" : "")
+      ]);
 
-      if (loggerValue) rules.push({ mode: "include", field: "logger", operator: "wildcard", value: loggerValue });
-      if (trimValue($("levelInput").value)) rules.push({ mode: "include", field: "level", operator: "is", value: trimValue($("levelInput").value) });
+      if (loggerRule) rules.push(loggerRule);
+      if (debugSessionRule) rules.push(debugSessionRule);
+      if (levelRule) rules.push(levelRule);
       if (trimValue($("userIdInput").value)) rules.push({ mode: "include", field: "user_id", operator: "is", value: trimValue($("userIdInput").value) });
       if (trimValue($("messageTextInput").value)) rules.push({ mode: "include", field: "message", operator: "is", value: trimValue($("messageTextInput").value) });
       if (requestUriValue) rules.push({ mode: "include", field: "http_request_uri", operator: "wildcard", value: requestUriValue });
       if (clientIp) {
-        rules.push({
-          mode: "include",
-          operator: "scopeAny",
-          rules: [
-            { mode: "include", field: "client_ip", operator: "is", value: clientIp },
-            { mode: "include", field: "client_ip_forwarded", operator: "is", value: clientIp }
-          ]
-        });
+        rules.push(anyRule([
+          fieldValueRule("client_ip", "is", clientIp),
+          fieldValueRule("client_ip_forwarded", "is", clientIp)
+        ]));
       }
       if (trimValue($("threadInput").value)) rules.push({ mode: "include", field: "thread", operator: "is", value: trimValue($("threadInput").value) });
 
@@ -857,6 +901,7 @@
         "includeCustomersInput",
         "excludeCustomersInput",
         "loggerInput",
+        "debugSessionIdInput",
         "levelInput",
         "userIdInput",
         "messageTextInput",
